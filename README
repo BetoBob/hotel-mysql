@@ -4,3 +4,7 @@ rehensle@calpoly.edu
 Compile Instructions:
 javac *.java
 java InnReservations
+
+Notes: 
+- Don't change print statements in InnReservations.java (for grading)
+
