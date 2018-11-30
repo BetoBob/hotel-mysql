@@ -1,9 +1,13 @@
 Robert Hensley
 rehensle@calpoly.edu
 
-Compile Instructions:
+Compile/Run Instructions:
 javac *.java
-java -cp .:mysql-connector-java-5.1.18-bin.jar Students2018
+java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 Notes: 
 - Don't change print statements in InnReservations.java (for grading)
+
+Questions:
+- Is Object Oriented design recommended for this project?
+    - Saw online that someone made a JDBC object

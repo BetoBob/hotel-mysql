@@ -14,38 +14,80 @@ import java.math.*;
 // main function. Contains main program loop
 public class InnReservations 
 {
-   // enter main program loop
+   private static Connection conn = null;
    public static void main(String args[]) 
    {
+      String url = null;
+      String userID = null;
+      String pword = null;
 
-      // eeb: you may want to put various set-up functionality here
-
-      boolean exit = false;
-      Scanner input = new Scanner(System.in);
-
-      // clear the screen to freshen up the display
-      clearScreen();
-
-      while (!exit) 
+      // get url, userID and password
+      try (BufferedReader br = new BufferedReader(new FileReader("ServerSettings.txt"))) 
       {
-	      displayMain();
-
-	      char option = input.nextLine().toLowerCase().charAt(0);
-
-         switch(option) 
-         {
-	         case 'a':   adminLoop();
-			      break;
-	         case 'o':   ownerLoop();
-			      break;
-	         case 'g':   guestLoop();
-			      break;
-	         case 'q':   exit = true;
-			      break;
-	      }
+         url = br.readLine();
+         userID = br.readLine();
+         pword = br.readLine();
+      }
+      catch (Exception ex)
+      {
+         System.out.println("Invalid format for ServerSettings.txt");
+         System.out.println(ex);
       }
 
-      input.close();
+      // Load the mysql JDBC driver 
+      try {
+         Class.forName("com.mysql.jdbc.Driver").newInstance();
+         System.out.println ("Driver class found and loaded."); 
+      }
+      catch (Exception ex) {
+         System.out.println("Driver not found");
+         System.out.println(ex);
+      }
+
+      try {
+         // Make the mySQL connection
+         conn = DriverManager.getConnection(url, userID, pword);
+
+         System.out.println ("connected.");
+
+         // Create mySQL DatabaseMetaData object
+         DatabaseMetaData meta = conn.getMetaData();
+         System.out.println ("JDBC driver version is " + meta.getDriverVersion());
+
+         // Close the connection
+         conn.close();
+
+         boolean exit = false;
+         Scanner input = new Scanner(System.in);
+
+         // clear the screen to freshen up the display
+         clearScreen();
+
+         while (!exit) 
+         {
+            displayMain();
+
+            char option = input.nextLine().toLowerCase().charAt(0);
+
+            switch(option) 
+            {
+               case 'a':   adminLoop();
+                  break;
+               case 'o':   ownerLoop();
+                  break;
+               case 'g':   guestLoop();
+                  break;
+               case 'q':   exit = true;
+                  break;
+            }
+         }
+
+         input.close();
+
+      }
+      catch (Exception ex) {
+         ex.printStackTrace( ); // for debugging
+      }
 
    }
 
