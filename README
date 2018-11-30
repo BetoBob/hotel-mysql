@@ -3,8 +3,7 @@ rehensle@calpoly.edu
 
 Compile Instructions:
 javac *.java
-java InnReservations
+java -cp .:mysql-connector-java-5.1.18-bin.jar Students2018
 
 Notes: 
 - Don't change print statements in InnReservations.java (for grading)
-

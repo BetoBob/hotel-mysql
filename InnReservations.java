@@ -12,33 +12,37 @@ import java.text.*;
 import java.math.*;
 
 // main function. Contains main program loop
-public class InnReservations {
-
+public class InnReservations 
+{
    // enter main program loop
-   public static void main(String args[]) {
+   public static void main(String args[]) 
+   {
 
-   // eeb: you may want to put various set-up functionality here
+      // eeb: you may want to put various set-up functionality here
 
-   boolean exit = false;
-   Scanner input = new Scanner(System.in);
+      boolean exit = false;
+      Scanner input = new Scanner(System.in);
 
       // clear the screen to freshen up the display
       clearScreen();
-      while (!exit) {
-	 displayMain();
 
-	 char option = input.nextLine().toLowerCase().charAt(0);
+      while (!exit) 
+      {
+	      displayMain();
 
-	 switch(option) {
-	    case 'a':   adminLoop();
-			break;
-	    case 'o':   ownerLoop();
-			break;
-	    case 'g':   guestLoop();
-			break;
-	    case 'q':   exit = true;
-			break;
-	 }
+	      char option = input.nextLine().toLowerCase().charAt(0);
+
+         switch(option) 
+         {
+	         case 'a':   adminLoop();
+			      break;
+	         case 'o':   ownerLoop();
+			      break;
+	         case 'g':   guestLoop();
+			      break;
+	         case 'q':   exit = true;
+			      break;
+	      }
       }
 
       input.close();
@@ -46,7 +50,8 @@ public class InnReservations {
    }
 
    // Main UI display
-   private static void displayMain() {
+   private static void displayMain() 
+   {
       // Clear the screen
       // clearScreen();
 
@@ -58,20 +63,19 @@ public class InnReservations {
          + "- (Q)uit\n");
    }
 
-
-
    // Program loop for admin subsystem
-   private static void adminLoop() {
+   private static void adminLoop() 
+   {
       boolean exit = false;
       Scanner input = new Scanner(System.in);
 
-      while (!exit) {
+      while (!exit) 
+      {
          displayAdmin();
 
          String[] tokens = input.nextLine().toLowerCase().split(" ");
          char option = tokens[0].charAt(0);
-	 System.out.println("option chosen: " + option);
-
+	      System.out.println("option chosen: " + option);
 
          switch(option) {
             case 'v':   System.out.println("displayTable\n");
@@ -86,11 +90,13 @@ public class InnReservations {
                         break;
          }
       }
+
+      input.close();
    }
 
-
    // Program loop for owner subsystem
-   private static void ownerLoop() {
+   private static void ownerLoop() 
+   {
       boolean exit = false;
       Scanner input = new Scanner(System.in);
 

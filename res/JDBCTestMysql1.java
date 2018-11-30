@@ -15,8 +15,8 @@ public class JDBCTestMysql1 {
 
       // Load the mysql JDBC driver 
       try {
-	 Class.forName("com.mysql.jdbc.Driver").newInstance();
-	 System.out.println ("Driver class found and loaded."); 
+	 	Class.forName("com.mysql.jdbc.Driver").newInstance();
+	 	System.out.println ("Driver class found and loaded."); 
       }
       catch (Exception ex) {
 	 System.out.println("Driver not found");

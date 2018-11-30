@@ -11,7 +11,7 @@ import java.text.*;
 import java.math.*;
 
 // main function. Contains main program loop
-public class InnReservations {
+public class InnReservationsOrg {
 
 
    // enter main program loop
@@ -22,7 +22,7 @@ public class InnReservations {
    boolean exit = false;
    Scanner input = new Scanner(System.in);
 
-      // clear the screen to freshen up the display
+   // clear the screen to freshen up the display
       clearScreen();
       while (!exit) {
 	 displayMain();
