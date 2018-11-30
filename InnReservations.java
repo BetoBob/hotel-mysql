@@ -45,18 +45,24 @@ public class InnReservations
       }
 
       try {
+         String query = null;
+         Statement stmt = null;
+
          // Make the mySQL connection
          conn = DriverManager.getConnection(url, userID, pword);
 
-         System.out.println ("connected.");
+         // Create "rooms" Table (if it doesn't exist)
+         query = "CREATE TABLE IF NOT EXISTS rooms "
+               + "LIKE INN.rooms";
+         stmt = conn.createStatement();
+         stmt.execute(query);
 
-         // Create mySQL DatabaseMetaData object
-         DatabaseMetaData meta = conn.getMetaData();
-         System.out.println ("JDBC driver version is " + meta.getDriverVersion());
-
-         // Close the connection
-         conn.close();
-
+         // Create "reservations" Table (if it doesn't exist)
+         query = "CREATE TABLE IF NOT EXISTS reservations "
+               + "LIKE INN.reservations";
+         stmt = conn.createStatement();
+         stmt.execute(query);
+         
          boolean exit = false;
          Scanner input = new Scanner(System.in);
 
@@ -82,6 +88,8 @@ public class InnReservations
             }
          }
 
+         // Close the connection and input
+         conn.close();
          input.close();
 
       }
