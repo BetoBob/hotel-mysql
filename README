@@ -1,0 +1,6 @@
+Robert Hensley
+rehensle@calpoly.edu
+
+Compile Instructions:
+javac *.java
+java InnReservations
