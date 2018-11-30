@@ -1,6 +1,7 @@
 /* 
-   J. Randomgeek
-   CSC 365 Project A UI
+ * Robert Hensley
+ * rehensle@calpoly.edu
+ * CSC 365 Project A UI
 */
 
 import java.sql.*;
@@ -12,7 +13,6 @@ import java.math.*;
 
 // main function. Contains main program loop
 public class InnReservations {
-
 
    // enter main program loop
    public static void main(String args[]) {
