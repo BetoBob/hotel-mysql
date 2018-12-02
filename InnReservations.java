@@ -133,7 +133,7 @@ public class InnReservations
                         break;
             case 'c':   System.out.println("clearDB\n");
                         break;
-            case 'l':   System.out.println("loadDB\n");
+            case 'l':   loadDB();
                         break;
             case 'r':   System.out.println("removeDB\n");
                         break;
@@ -144,17 +144,18 @@ public class InnReservations
 
    }
 
-   // Admin UI display
    // AR-1 Current Status Display
+
+   // Admin UI display
    private static void displayAdmin() 
    {
 
       // Clear the screen -- only if it makes sense to do it
       // clearScreen();
 
-      String status = "<put in state informnation>";
-      String res = "<put in count of reservations>";
-      String rooms = "<put in room information>";
+      String status = "<error>";
+      String res = getTableCounts("reservations");
+      String rooms = getTableCounts("rooms");
 
       // Get Status
       try {
@@ -173,27 +174,6 @@ public class InnReservations
          System.out.println("ee170: " + ee);
       }
 
-      // get reservation counts
-      try {
-         Statement s = conn.createStatement();
-         ResultSet result = s.executeQuery("SELECT COUNT(*) FROM reservations");
-         result.next();
-         res = result.getString(1);
-      }
-      catch (Exception ee) {
-         System.out.println("ee170: " + ee);
-      }
-
-      // get room counts
-      try {
-         Statement s = conn.createStatement();
-         ResultSet result = s.executeQuery("SELECT COUNT(*) FROM rooms");
-         result.next();
-         rooms = result.getString(1);
-      }
-      catch (Exception ee) {
-         System.out.println("ee170: " + ee);
-      }
 
       // Display UI
       // add your own information for the state of the database
@@ -209,6 +189,58 @@ public class InnReservations
          + "- (B)ack - Goes back to main menu\n");
 
    }
+
+   // AR-1. Current Status Display
+
+   private static String getTableCounts(String table)
+   {
+      // get reservation counts
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery("SELECT COUNT(*) FROM " + table);
+         result.next();
+         return result.getString(1);
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+      }
+
+      return "<error>";
+
+   }
+
+   // AR-2. Table display
+
+   // AR-3. Clear database (remove content of tables)
+
+   // AR-4. Load/Reload DB
+
+   private static void loadDB_helper(String file_name)
+   {
+      try 
+      {
+         Statement s = conn.createStatement();
+         Scanner sc = new Scanner(new File(file_name));
+         while (sc.hasNextLine()) 
+         {
+            PreparedStatement ps = conn.prepareStatement(sc.nextLine() + sc.nextLine()); 
+            ps.executeUpdate();
+         }
+         sc.close();
+      }
+      catch (Exception ee) {
+         System.out.println(ee);
+      }
+   }
+
+   private static void loadDB()
+   {
+
+      loadDB_helper("INN-build-rooms.sql");
+      //loadDB_helper("INN-build-reservations.sql");
+   }
+
+   // AR-5. Database Removal (remove all tables)
 
 /* ------------- Owner Functions ------------- */
 
@@ -279,6 +311,8 @@ public class InnReservations
          + "- (B)ack - Goes back to main menu\n");
    }
 
+/* ------------- Misc Functions ------------- */
+
    // Clears the console screen when running interactive
    private static void clearScreen() 
    {
@@ -319,7 +353,6 @@ public class InnReservations
          + "- (R)ooms - View list of rooms\n"
          + "- (B)ack - Goes back to main menu\n");
    }
-
 
    // Get a date from input
    private static String getDate() {
@@ -386,7 +419,6 @@ public class InnReservations
       return rvCode;
    }
 
-
    // Revenue and volume data subsystem -- option to continue or quit
    private static char revenueData() {
       Scanner input = new Scanner(System.in);
@@ -397,8 +429,6 @@ public class InnReservations
 
 	 return opt;
    }
-
-
 
    // potentially useful for Rooms Viewing Subsystem -- gets option to
    // view room code or reservations room code or exit

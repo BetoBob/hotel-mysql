@@ -8,7 +8,7 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 Notes: 
 - Don't change print statements in InnReservations.java (for grading)
 
-Questions:
+Questions/Notes:
 
     General:
     - Why and where do I check INN database being full?
@@ -16,14 +16,21 @@ Questions:
         - isn't this already done in ADMIN subsystem? What's the difference?
         
     - I noticed the clear screen method is commented out, 
-    does this mean we aren't expected to clear screen (I'm guessing for your tester)?
+        - does this mean we aren't expected to clear screen (I'm guessing for your test suite)?
 
     Admin:
-        AR-1: 
+        AR-1. Status:  
             - status is for database in ServerSettings?
             - can we hardcode the database we are using (i.e. 'rehensle')?
             - how do we find no database case? 
-        AR-2:
-        
+            - using multiple try/catch statements in case one table is missing
+        AR-2 Table Display:
+        AR-3 Clear database (removes tuples from tables): 
+        AR-4 Populate the database: 
+        AR-5 Database removal (remove tables -> empty status):
+        AR-6 switch subsystem (just the back button): 
+            complete
 
-    
+    Owner:
+
+    Guest:

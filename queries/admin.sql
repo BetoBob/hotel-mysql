@@ -15,6 +15,14 @@
 
 -- AR-2 Table display
 
+    -- rooms
+    SELECT *
+    FROM rooms;
+
+    -- reservations;
+    SELECT *
+    FROM reservations;
+
 -- AR-3 Clear database
 
 -- AR-4 Load/Reload DB
