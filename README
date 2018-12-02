@@ -7,3 +7,23 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 Notes: 
 - Don't change print statements in InnReservations.java (for grading)
+
+Questions:
+
+    General:
+    - Why and where do I check INN database being full?
+        - after each while loop?
+        - isn't this already done in ADMIN subsystem? What's the difference?
+        
+    - I noticed the clear screen method is commented out, 
+    does this mean we aren't expected to clear screen (I'm guessing for your tester)?
+
+    Admin:
+        AR-1: 
+            - status is for database in ServerSettings?
+            - can we hardcode the database we are using (i.e. 'rehensle')?
+            - how do we find no database case? 
+        AR-2:
+        
+
+    

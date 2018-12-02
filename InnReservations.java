@@ -103,7 +103,7 @@ public class InnReservations
    private static void displayMain() 
    {
       // Clear the screen
-      // clearScreen();
+      clearScreen();
 
       // Display UI
       System.out.println("Welcome. Please choose your role:\n\n"
@@ -112,6 +112,8 @@ public class InnReservations
          + "- (G)uest\n"
          + "- (Q)uit\n");
    }
+
+/* ------------- Admin Functions ------------- */
 
    // Program loop for admin subsystem
    private static void adminLoop() 
@@ -125,7 +127,6 @@ public class InnReservations
 
          String[] tokens = input.nextLine().toLowerCase().split(" ");
          char option = tokens[0].charAt(0);
-	      System.out.println("option chosen: " + option);
 
          switch(option) {
             case 'v':   System.out.println("displayTable\n");
@@ -141,8 +142,75 @@ public class InnReservations
          }
       }
 
-      input.close();
    }
+
+   // Admin UI display
+   // AR-1 Current Status Display
+   private static void displayAdmin() 
+   {
+
+      // Clear the screen -- only if it makes sense to do it
+      // clearScreen();
+
+      String status = "<put in state informnation>";
+      String res = "<put in count of reservations>";
+      String rooms = "<put in room information>";
+
+      // Get Status
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery(
+            "SELECT COUNT(*) " +
+            "FROM INFORMATION_SCHEMA.TABLES " +
+            "WHERE TABLE_SCHEMA = 'rehensle'");
+         result.next();
+         if(result.getString(1).equals("0"))
+            status = "empty";
+         else
+            status = "full";
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+      }
+
+      // get reservation counts
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery("SELECT COUNT(*) FROM reservations");
+         result.next();
+         res = result.getString(1);
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+      }
+
+      // get room counts
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery("SELECT COUNT(*) FROM rooms");
+         result.next();
+         rooms = result.getString(1);
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+      }
+
+      // Display UI
+      // add your own information for the state of the database
+      System.out.println("Welcome, Admin.\n\n"
+         + "Current Status: " + status + "\n"   // AR-1 Status
+         + "Reservations: " + res + "\n"        // AR-1 Reservations
+         + "Rooms: " + rooms + "\n\n"           // AR-1 Rooms
+         + "Choose an option:\n"
+         + "- (V)iew [table name] - Displays table contents\n"
+         + "- (C)lear - Deletes all table contents\n"                   
+         + "- (L)oad - Loads all table contents\n"
+         + "- (R)emove - Removes tables\n"
+         + "- (B)ack - Goes back to main menu\n");
+
+   }
+
+/* ------------- Owner Functions ------------- */
 
    // Program loop for owner subsystem
    private static void ownerLoop() 
@@ -174,6 +242,8 @@ public class InnReservations
          }
       }
    }
+
+/* ------------- Guess Functions ------------- */
 
    // Program loop for guest subsystem
    private static void guestLoop() {
@@ -210,45 +280,24 @@ public class InnReservations
    }
 
    // Clears the console screen when running interactive
-   private static void clearScreen() {
+   private static void clearScreen() 
+   {
       Console c = System.console();
-      if (c != null) {
+      if (c != null) 
+      {
+         // Clear screen for the first time
+         System.out.print("\033[H\033[2J");
+         System.out.flush();
+         //c.writer().print(ESC + "[2J");
+         //c.flush();
 
-	 // Clear screen for the first time
-	 System.out.print("\033[H\033[2J");
-	 System.out.flush();
-	 //c.writer().print(ESC + "[2J");
-	 //c.flush();
-
-	 // Clear the screen again and place the cursor in the top left
-	 System.out.print("\033[H\033[1;1H");
-	 System.out.flush();
-	 //c.writer().print(ESC + "[1;1H");
-	 //c.flush();
+         // Clear the screen again and place the cursor in the top left
+         System.out.print("\033[H\033[1;1H");
+         System.out.flush();
+         //c.writer().print(ESC + "[1;1H");
+         //c.flush();
       }
    }
-
-   // Admin UI display
-   private static void displayAdmin() {
-
-      // Clear the screen -- only if it makes sense to do it
-      // clearScreen();
-
-      // Display UI
-      // add your own information for the state of the database
-      System.out.println("Welcome, Admin.\n\n"
-         + "Current Status: " + "<put in state informnation>" + "\n"
-         + "Reservations: " + "<put in count of reservations>" + "\n"
-         + "Rooms: " + "<put in room information>" + "\n\n"
-         + "Choose an option:\n"
-         + "- (V)iew [table name] - Displays table contents\n"
-         + "- (C)lear - Deletes all table contents\n"
-         + "- (L)oad - Loads all table contents\n"
-         + "- (R)emove - Removes tables\n"
-         + "- (B)ack - Goes back to main menu\n");
-
-   }
-
 
    // during the display of a database table you may offer the option
    // to stop the display (since there are many reservations):
@@ -286,21 +335,21 @@ public class InnReservations
    // Convert month name to month number
    private static int monthNum(String month) {
       switch (month) {
-         case "january": return 1;
-         case "february": return 2;
-         case "march": return 3;
-         case "april": return 4;
-         case "may": return 5;
-         case "june": return 6;
-         case "july": return 7;
-         case "august": return 8;
+         case "january":   return 1;
+         case "february":  return 2;
+         case "march":     return 3;
+         case "april":     return 4;
+         case "may":       return 5;
+         case "june":      return 6;
+         case "july":      return 7;
+         case "august":    return 8;
          case "september": return 9;
-         case "october": return 10;
-         case "november": return 11;
-         case "december": return 12;
+         case "october":   return 10;
+         case "november":  return 11;
+         case "december":  return 12;
       }
 
-      return 0;
+      return 0; // default
    }
  
    // ask how many dates will be entered
@@ -366,13 +415,14 @@ public class InnReservations
    }
 
    // ask user if they wish to quit
-   private static char askIfQuit() {
+   private static char askIfQuit() 
+   {
       Scanner input = new Scanner(System.in);
 
-	 System.out.print("Enter (q)uit to quit: ");
-	 char go = input.next().toLowerCase().charAt(0);
+	   System.out.print("Enter (q)uit to quit: ");
+	   char go = input.next().toLowerCase().charAt(0);
 
-	 return go;
+	   return go;
    }
 
 
@@ -380,10 +430,10 @@ public class InnReservations
    private static char askIfGoBack() {
       Scanner input = new Scanner(System.in);
 
-	 System.out.print("Enter (b)ack to go back: ");
-	 char go = input.next().toLowerCase().charAt(0);
+	   System.out.print("Enter (b)ack to go back: ");
+	   char go = input.next().toLowerCase().charAt(0);
 
-	 return go;
+	   return go;
    }
 
 

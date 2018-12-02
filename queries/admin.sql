@@ -1,5 +1,18 @@
 -- AR-1 Current Status Display
 
+    -- Status
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = 'rehensle';
+
+    -- Reservations
+    SELECT COUNT(*)
+    FROM reservations;
+
+    -- Rooms
+    SELECT COUNT(*)
+    FROM rooms;
+
 -- AR-2 Table display
 
 -- AR-3 Clear database
