@@ -15,10 +15,10 @@ import java.math.*;
 public class InnReservations 
 {
    private static Connection conn = null;
+   private static String userID = null;
    public static void main(String args[]) 
    {
       String url = null;
-      String userID = null;
       String pword = null;
 
       // get url, userID and password
@@ -37,31 +37,18 @@ public class InnReservations
       // Load the mysql JDBC driver 
       try {
          Class.forName("com.mysql.jdbc.Driver").newInstance();
-         System.out.println ("Driver class found and loaded."); 
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
          System.out.println("Driver not found");
          System.out.println(ex);
       }
 
       try {
-         String query = null;
-         Statement stmt = null;
 
          // Make the mySQL connection
          conn = DriverManager.getConnection(url, userID, pword);
 
-         // Create "rooms" Table (if it doesn't exist)
-         query = "CREATE TABLE IF NOT EXISTS rooms "
-               + "LIKE INN.rooms";
-         stmt = conn.createStatement();
-         stmt.execute(query);
-
-         // Create "reservations" Table (if it doesn't exist)
-         query = "CREATE TABLE IF NOT EXISTS reservations "
-               + "LIKE INN.reservations";
-         stmt = conn.createStatement();
-         stmt.execute(query);
+         // creat
+         createTables();
          
          boolean exit = false;
          Scanner input = new Scanner(System.in);
@@ -92,6 +79,30 @@ public class InnReservations
          conn.close();
          input.close();
 
+      }
+      catch (Exception ex) {
+         ex.printStackTrace( ); // for debugging
+      }
+
+   }
+
+   private static void createTables()
+   {
+      try {
+         String query = null;
+         Statement stmt = null;
+
+         // Create "rooms" Table (if it doesn't exist)
+         query = "CREATE TABLE IF NOT EXISTS rooms "
+               + "LIKE INN.rooms";
+         stmt = conn.createStatement();
+         stmt.execute(query);
+
+         // Create "reservations" Table (if it doesn't exist)
+         query = "CREATE TABLE IF NOT EXISTS reservations "
+               + "LIKE INN.reservations";
+         stmt = conn.createStatement();
+         stmt.execute(query);
       }
       catch (Exception ex) {
          ex.printStackTrace( ); // for debugging
@@ -131,11 +142,11 @@ public class InnReservations
          switch(option) {
             case 'v':   System.out.println("displayTable\n");
                         break;
-            case 'c':   System.out.println("clearDB\n");
+            case 'c':   clearDB();
                         break;
             case 'l':   loadDB();
                         break;
-            case 'r':   System.out.println("removeDB\n");
+            case 'r':   removeDB();
                         break;
             case 'b':   exit = true;
                         break;
@@ -144,8 +155,6 @@ public class InnReservations
 
    }
 
-   // AR-1 Current Status Display
-
    // Admin UI display
    private static void displayAdmin() 
    {
@@ -153,27 +162,9 @@ public class InnReservations
       // Clear the screen -- only if it makes sense to do it
       // clearScreen();
 
-      String status = "<error>";
+      String status = getStatus();
       String res = getTableCounts("reservations");
       String rooms = getTableCounts("rooms");
-
-      // Get Status
-      try {
-         Statement s = conn.createStatement();
-         ResultSet result = s.executeQuery(
-            "SELECT COUNT(*) " +
-            "FROM INFORMATION_SCHEMA.TABLES " +
-            "WHERE TABLE_SCHEMA = 'rehensle'");
-         result.next();
-         if(result.getString(1).equals("0"))
-            status = "empty";
-         else
-            status = "full";
-      }
-      catch (Exception ee) {
-         System.out.println("ee170: " + ee);
-      }
-
 
       // Display UI
       // add your own information for the state of the database
@@ -192,9 +183,32 @@ public class InnReservations
 
    // AR-1. Current Status Display
 
+   private static String getStatus()
+   {
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery(
+            "SELECT COUNT(*) " +
+            "FROM INFORMATION_SCHEMA.TABLES " +
+            "WHERE TABLE_SCHEMA = '" + userID + "'");
+         result.next();
+
+         if(result.getString(1).equals("0"))
+            return "no database";
+         if(getTableCounts("rooms").equals("0") ||
+            getTableCounts("reservations").equals("0"))
+            return "empty";
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+         return "error";
+      }
+
+      return "full";
+   }
+
    private static String getTableCounts(String table)
    {
-      // get reservation counts
       try {
          Statement s = conn.createStatement();
          ResultSet result = s.executeQuery("SELECT COUNT(*) FROM " + table);
@@ -202,10 +216,8 @@ public class InnReservations
          return result.getString(1);
       }
       catch (Exception ee) {
-         System.out.println("ee170: " + ee);
+         return "<null>";
       }
-
-      return "<error>";
 
    }
 
@@ -213,7 +225,42 @@ public class InnReservations
 
    // AR-3. Clear database (remove content of tables)
 
+   private static void clearDB()
+   {
+      if(getStatus().equals("no database"))
+         return;
+
+      clearTable("rooms");
+      clearTable("reservations");
+   }
+
+   private static void clearTable(String table)
+   {
+      try {
+         Statement s = conn.createStatement();
+	      s.executeUpdate("DELETE FROM " + table);
+      }
+      catch (Exception ee) {
+         System.out.println(ee);
+      }
+   }
+
    // AR-4. Load/Reload DB
+
+   private static void loadDB()
+   {
+      // checking for full table (just return)
+      if(getStatus().equals("full"))
+         return;
+      
+      // check if no database (create tables)
+      if(getStatus().equals("no database"))
+         createTables();
+
+      // populate the tables
+      loadDB_helper("INN-build-rooms.sql");
+      loadDB_helper("INN-build-reservations.sql");
+   }
 
    private static void loadDB_helper(String file_name)
    {
@@ -233,14 +280,27 @@ public class InnReservations
       }
    }
 
-   private static void loadDB()
-   {
+   // AR-5. Database Removal (remove all tables)
 
-      loadDB_helper("INN-build-rooms.sql");
-      //loadDB_helper("INN-build-reservations.sql");
+   private static void removeDB()
+   {
+      if(getStatus().equals("no database"))
+         return;
+
+      dropTable("rooms");
+      dropTable("reservations");
    }
 
-   // AR-5. Database Removal (remove all tables)
+   private static void dropTable(String table)
+   {
+      try {
+         Statement s = conn.createStatement();
+	      s.executeUpdate("DROP TABLE " + table);
+      }
+      catch (Exception ee) {
+         System.out.println(ee);
+      }
+   }
 
 /* ------------- Owner Functions ------------- */
 

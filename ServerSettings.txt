@@ -1,0 +1,3 @@
+jdbc:mysql://ambari-head.csc.calpoly.edu/rehensle
+rehensle
+2669800
