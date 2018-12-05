@@ -17,6 +17,7 @@ Notes:
         AR-1. Status:
             complete
         AR-2 Table Display:
+            complete
         AR-3 Clear database (removes tuples from tables -> empty database): 
             complete
         AR-4 Populate the database: 
@@ -25,11 +26,8 @@ Notes:
             complete
         AR-6 switch subsystem (just the back button): 
             complete
-
-        - AR-3 and AR-6 functions can be combined (time permits)
-        - AR-4 method might be slow (reading from .sql query file)
         
     Owner:
         
-
     Guest:
+    

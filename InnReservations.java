@@ -225,10 +225,10 @@ public class InnReservations
 
    private static void displayMyRooms()
    {
-      /* lengths of VarChar columns */
-      int RN = 50;
-      int BT = 50;
-      int D = 50;
+      /* lengths of VarChar columns (default) */
+      int RN = 8;
+      int BT = 7;
+      int D = 7;
       String header;
       PreparedStatement stmt = null;
       ResultSet rset = null;
@@ -245,9 +245,9 @@ public class InnReservations
          stmt = conn.prepareStatement(lengthQ);
          rset = stmt.executeQuery();
          rset.next();
-         RN = rset.getInt("maxRN") + 1;
-         BT = rset.getInt("maxBT") + 1;
-         D  = rset.getInt("maxD") + 1;
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+         BT = (rset.getInt("maxBT") > BT) ? rset.getInt("maxBT") : BT; 
+         D  = (rset.getInt("maxD")  > D)  ? rset.getInt("maxD")  : D; 
       }
       catch (Exception ex){
           ex.printStackTrace();
@@ -267,12 +267,12 @@ public class InnReservations
 
          stmt = conn.prepareStatement("SELECT * FROM myRooms");
          rset = stmt.executeQuery();
-         header = "\nRoomId | "
-                + String.format(" %-" + RN + "s| ", "RoomName")
+         header = "\n RoomId | "
+                + String.format("%-" + RN + "s | ", "RoomName")
                 + "Beds | "
-                + String.format(" %-" + BT + "s| ", "BedType")
+                + String.format("%-" + BT + "s | ", "BedType")
                 + "MaxOcc | BasePrice | "
-                + String.format(" %-" + D + "s", "Decor");
+                + String.format("%-" + D + "s", "Decor");
          
 
          System.out.println(header);
@@ -280,7 +280,7 @@ public class InnReservations
                
          while (rset.next())
          {
-            System.out.print(String.format("%-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format(" %-6s | ", rset.getString("RoomId")));
             System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
             System.out.print(String.format("%-4s | ", rset.getInt("Beds")));
             System.out.print(String.format("%-" + BT + "s | ", rset.getString("BedType")));
@@ -306,9 +306,10 @@ public class InnReservations
 
    private static void displayMyReservations()
    {
-      /* lengths of VarChar columns */
-      int LN = 50;
-      int FN = 50;
+      /* lengths of columns subject to change in length */
+      int C = 5;
+      int LN = 8;
+      int FN = 9;
       String header;
       PreparedStatement stmt = null;
       ResultSet rset = null;
@@ -316,16 +317,17 @@ public class InnReservations
       // get max lengths of variables
       try 
       {
-         String lengthQ = "SELECT MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
+         String lengthQ = "SELECT MAX(CHAR_LENGTH(Code)) AS maxC, "
+                        + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
                         + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
                         + "FROM myReservations";
 
-         // max length of RoomName
          stmt = conn.prepareStatement(lengthQ);
          rset = stmt.executeQuery();
          rset.next();
-         LN = rset.getInt("maxLN") + 1;
-         FN = rset.getInt("maxFN") + 1;
+         C  = (rset.getInt("maxC")  > C)  ? rset.getInt("maxC")  :  C; 
+         LN = (rset.getInt("maxLN") > LN) ? rset.getInt("maxLN") : LN; 
+         FN = (rset.getInt("maxFN") > FN) ? rset.getInt("maxFN") : FN; 
       }
       catch (Exception ex){
           ex.printStackTrace();
@@ -345,9 +347,9 @@ public class InnReservations
 
          stmt = conn.prepareStatement("SELECT * FROM myReservations");
          rset = stmt.executeQuery();
-         header = "\nCode   | Room | CheckIn    | CheckOut   | Rate | "
-                + String.format(" %" + LN + "s| ", "LastName")
-                + String.format(" %" + FN + "s| ", "FirstName")
+         header = "\n Code  | Room | CheckIn    | CheckOut   | Rate | "
+                + String.format("%" + LN + "s | ", "LastName")
+                + String.format("%" + FN + "s | ", "FirstName")
                 + "Adults | Kids";
          
          System.out.println(header);
@@ -359,11 +361,11 @@ public class InnReservations
             System.out.print(String.format("%-4s | ", rset.getString("Room")));
             System.out.print(String.format("%10s | ", rset.getString("CheckIn")));
             System.out.print(String.format("%10s | ", rset.getString("CheckOut")));
-            System.out.print(String.format("%-4s | ", rset.getInt("Rate")));
-            System.out.print(String.format("%" + LN + "s | ", rset.getString("LastName")));
-            System.out.print(String.format("%" + FN + "s | ", rset.getString("FirstName")));
+            System.out.print(String.format("%4s | ", rset.getInt("Rate")));
+            System.out.print(String.format("%-" + LN + "s | ", rset.getString("LastName")));
+            System.out.print(String.format("%-" + FN + "s | ", rset.getString("FirstName")));
             System.out.print(String.format("%6s | ", rset.getInt("Adults")));
-            System.out.println(String.format("%4s | ", rset.getInt("Kids")));
+            System.out.println(String.format("%4s", rset.getInt("Kids")));
          }
          System.out.println();
          rset.close();
@@ -388,8 +390,6 @@ public class InnReservations
       String[] tokens = input.nextLine().split(" ");
       String table = tokens[0];
 
-      System.out.println(getStatus());
-
       if(getStatus().equals("no database"))
       {
          System.out.println();
@@ -398,9 +398,10 @@ public class InnReservations
       
       if(table.equals("myRooms"))
          displayMyRooms();
-
-      if(table.equals("myReservations"))
+      else if(table.equals("myReservations"))
          displayMyReservations();
+      else
+         System.out.println();
 
    }
 
