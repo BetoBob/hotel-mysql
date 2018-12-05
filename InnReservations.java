@@ -135,12 +135,16 @@ public class InnReservations
       while (!exit) 
       {
          displayAdmin();
+         String table = "";
 
-         String[] tokens = input.nextLine().toLowerCase().split(" ");
-         char option = tokens[0].charAt(0);
+         String[] tokens = input.nextLine().split(" ");
+         char option = tokens[0].toLowerCase().charAt(0);
+
+         if(tokens.length > 1)
+            table = tokens[1];
 
          switch(option) {
-            case 'v':   displayTable();
+            case 'v':   displayTable(table);
                         break;
             case 'c':   clearDB();
                         break;
@@ -383,25 +387,17 @@ public class InnReservations
       }
    }
 
-   private static void displayTable()
+   private static void displayTable(String table)
    {
-      System.out.print("\nEnter a table name: ");
-      Scanner input = new Scanner(System.in);
-      String[] tokens = input.nextLine().split(" ");
-      String table = tokens[0];
 
       if(getStatus().equals("no database"))
-      {
-         System.out.println();
          return;
-      }
       
       if(table.equals("myRooms"))
          displayMyRooms();
-      else if(table.equals("myReservations"))
+
+      if(table.equals("myReservations"))
          displayMyReservations();
-      else
-         System.out.println();
 
    }
 
