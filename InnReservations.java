@@ -304,20 +304,103 @@ public class InnReservations
       }
    }
 
+   private static void displayMyReservations()
+   {
+      /* lengths of VarChar columns */
+      int LN = 50;
+      int FN = 50;
+      String header;
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         String lengthQ = "SELECT MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
+                        + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
+                        + "FROM myReservations";
+
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         LN = rset.getInt("maxLN") + 1;
+         FN = rset.getInt("maxFN") + 1;
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement("SELECT * FROM myReservations");
+         rset = stmt.executeQuery();
+         header = "\nCode   | Room | CheckIn    | CheckOut   | Rate | "
+                + String.format(" %" + LN + "s| ", "LastName")
+                + String.format(" %" + FN + "s| ", "FirstName")
+                + "Adults | Kids";
+         
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format("%6s | ", rset.getInt("Code")));
+            System.out.print(String.format("%-4s | ", rset.getString("Room")));
+            System.out.print(String.format("%10s | ", rset.getString("CheckIn")));
+            System.out.print(String.format("%10s | ", rset.getString("CheckOut")));
+            System.out.print(String.format("%-4s | ", rset.getInt("Rate")));
+            System.out.print(String.format("%" + LN + "s | ", rset.getString("LastName")));
+            System.out.print(String.format("%" + FN + "s | ", rset.getString("FirstName")));
+            System.out.print(String.format("%6s | ", rset.getInt("Adults")));
+            System.out.println(String.format("%4s | ", rset.getInt("Kids")));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
    private static void displayTable()
    {
       System.out.print("\nEnter a table name: ");
       Scanner input = new Scanner(System.in);
       String[] tokens = input.nextLine().split(" ");
       String table = tokens[0];
+
+      System.out.println(getStatus());
+
+      if(getStatus().equals("no database"))
+      {
+         System.out.println();
+         return;
+      }
       
       if(table.equals("myRooms"))
          displayMyRooms();
 
       if(table.equals("myReservations"))
-      {
-
-      }
+         displayMyReservations();
 
    }
 
