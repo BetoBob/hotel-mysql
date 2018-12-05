@@ -93,13 +93,13 @@ public class InnReservations
          Statement stmt = null;
 
          // Create "rooms" Table (if it doesn't exist)
-         query = "CREATE TABLE IF NOT EXISTS rooms "
+         query = "CREATE TABLE IF NOT EXISTS myRooms "
                + "LIKE INN.rooms";
          stmt = conn.createStatement();
          stmt.execute(query);
 
          // Create "reservations" Table (if it doesn't exist)
-         query = "CREATE TABLE IF NOT EXISTS reservations "
+         query = "CREATE TABLE IF NOT EXISTS myReservations "
                + "LIKE INN.reservations";
          stmt = conn.createStatement();
          stmt.execute(query);
@@ -140,7 +140,7 @@ public class InnReservations
          char option = tokens[0].charAt(0);
 
          switch(option) {
-            case 'v':   System.out.println("displayTable\n");
+            case 'v':   displayTable();
                         break;
             case 'c':   clearDB();
                         break;
@@ -163,8 +163,8 @@ public class InnReservations
       // clearScreen();
 
       String status = getStatus();
-      String res = getTableCounts("reservations");
-      String rooms = getTableCounts("rooms");
+      String res = getTableCounts("myReservations");
+      String rooms = getTableCounts("myRooms");
 
       // Display UI
       // add your own information for the state of the database
@@ -195,8 +195,8 @@ public class InnReservations
 
          if(result.getString(1).equals("0"))
             return "no database";
-         if(getTableCounts("rooms").equals("0") ||
-            getTableCounts("reservations").equals("0"))
+         if(getTableCounts("myRooms").equals("0") ||
+            getTableCounts("myReservations").equals("0"))
             return "empty";
       }
       catch (Exception ee) {
@@ -223,6 +223,104 @@ public class InnReservations
 
    // AR-2. Table display
 
+   private static void displayMyRooms()
+   {
+      /* lengths of VarChar columns */
+      int RN = 50;
+      int BT = 50;
+      int D = 50;
+      String header;
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN, " 
+                        + "MAX(CHAR_LENGTH(BedType)) AS maxBT, " 
+                        + "MAX(CHAR_LENGTH(Decor)) AS maxD " 
+                        + "FROM myRooms";
+
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         RN = rset.getInt("maxRN") + 1;
+         BT = rset.getInt("maxBT") + 1;
+         D  = rset.getInt("maxD") + 1;
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement("SELECT * FROM myRooms");
+         rset = stmt.executeQuery();
+         header = "\nRoomId | "
+                + String.format(" %-" + RN + "s| ", "RoomName")
+                + "Beds | "
+                + String.format(" %-" + BT + "s| ", "BedType")
+                + "MaxOcc | BasePrice | "
+                + String.format(" %-" + D + "s", "Decor");
+         
+
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format("%-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
+            System.out.print(String.format("%-4s | ", rset.getInt("Beds")));
+            System.out.print(String.format("%-" + BT + "s | ", rset.getString("BedType")));
+            System.out.print(String.format("%-6s | ", rset.getInt("MaxOcc")));
+            System.out.print(String.format("%-9s | ", rset.getInt("BasePrice")));
+            System.out.println(String.format("%-" + D + "s", rset.getString("Decor")));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
+   private static void displayTable()
+   {
+      System.out.print("\nEnter a table name: ");
+      Scanner input = new Scanner(System.in);
+      String[] tokens = input.nextLine().split(" ");
+      String table = tokens[0];
+      
+      if(table.equals("myRooms"))
+         displayMyRooms();
+
+      if(table.equals("myReservations"))
+      {
+
+      }
+
+   }
+
    // AR-3. Clear database (remove content of tables)
 
    private static void clearDB()
@@ -230,8 +328,8 @@ public class InnReservations
       if(getStatus().equals("no database"))
          return;
 
-      clearTable("rooms");
-      clearTable("reservations");
+      clearTable("myRooms");
+      clearTable("myReservations");
    }
 
    private static void clearTable(String table)
@@ -287,8 +385,8 @@ public class InnReservations
       if(getStatus().equals("no database"))
          return;
 
-      dropTable("rooms");
-      dropTable("reservations");
+      dropTable("myRooms");
+      dropTable("myReservations");
    }
 
    private static void dropTable(String table)
@@ -335,6 +433,16 @@ public class InnReservations
       }
    }
 
+   // OR-1. Occupancy overview
+
+   // OR-2. Revenue
+
+   // OR-3. Reservations
+
+   // OR-4. Rooms
+
+   // OR-5. Detailed reservation information
+
 /* ------------- Guess Functions ------------- */
 
    // Program loop for guest subsystem
@@ -370,6 +478,20 @@ public class InnReservations
          + "- (S)tays - View availability for your stay\n"
          + "- (B)ack - Goes back to main menu\n");
    }
+
+   // R-0
+
+   // R-1. Rooms and Rates
+
+   // R-2. Checking Room Availability
+
+   // R-3 Pricing
+
+   // R-4 Reservations
+
+   // R-5 Completing a reservation
+
+   // R-6 Updating the databse
 
 /* ------------- Misc Functions ------------- */
 

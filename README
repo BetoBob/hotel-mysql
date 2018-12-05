@@ -6,20 +6,18 @@ javac *.java
 java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 Notes: 
-- Don't change print statements in InnReservations.java (for grading)
 - the Makefile compiles and runs when 'make' is run in the directory
-
-Notes:
 
     General:
     - I noticed the clear screen method is commented out, 
         - does this mean we aren't expected to clear screen (I'm guessing for your test suite)?
+    - should we assume that there are no other tables than room/reservations in the database?
 
     Admin:
         AR-1. Status:
             complete
         AR-2 Table Display:
-        AR-3 Clear database (removes tuples from tables): 
+        AR-3 Clear database (removes tuples from tables -> empty database): 
             complete
         AR-4 Populate the database: 
             complete
@@ -32,5 +30,6 @@ Notes:
         - AR-4 method might be slow (reading from .sql query file)
         
     Owner:
+        
 
     Guest:
