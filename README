@@ -14,20 +14,25 @@ Notes:
     - should we assume that there are no other tables than room/reservations in the database?
 
     Admin:
-        AR-1. Status:
+        AR-1. Status
             complete
-        AR-2 Table Display:
+        AR-2. Table Display
             complete
-        AR-3 Clear database (removes tuples from tables -> empty database): 
+        AR-3. Clear database (removes tuples from tables -> empty database): 
             complete
-        AR-4 Populate the database: 
+        AR-4. Populate the database
             complete
-        AR-5 Database removal (remove tables -> no database):
+        AR-5. Database removal (remove tables -> no database)
             complete
-        AR-6 switch subsystem (just the back button): 
+        AR-6. switch subsystem (just the back button)
             complete
         
     Owner:
+        OR-1. Occupancy overview
+        OR-2. Revenue
+        OR-3. Reservations
+        OR-4. Rooms
+        OR-5. Detailed reservation information
         
     Guest:
-    
+
