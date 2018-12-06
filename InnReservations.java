@@ -598,6 +598,8 @@ public class InnReservations
       }
    }
 
+   // AR-2. Table Display
+   // OR-5. Detailed reservation information
    private static void displayMyReservations(String whereClause)
    {
       String query = "SELECT * "
