@@ -16,7 +16,7 @@ class Students2018 {
       try {
 
          // Load the mysql JDBC driver
-         Class.forName ("com.mysql.jdbc.Driver").newInstance(); 
+         Class.forName("com.mysql.jdbc.Driver").newInstance(); 
          System.out.println ("Driver class found and loaded.");   
       }
       catch (Exception ex) {

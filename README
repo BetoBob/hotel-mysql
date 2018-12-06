@@ -7,11 +7,10 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 Notes: 
 - the Makefile compiles and runs when 'make' is run in the directory
+- this system assumes that no tables can possibly exist in the working database
+  other than "myRooms" and "myReservations" 
 
-    General:
-    - I noticed the clear screen method is commented out, 
-        - does this mean we aren't expected to clear screen (I'm guessing for your test suite)?
-    - should we assume that there are no other tables than room/reservations in the database?
+  exist in the database at any 
 
     Admin:
         AR-1. Status
