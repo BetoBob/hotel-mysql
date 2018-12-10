@@ -8,7 +8,7 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 Notes: 
 - the Makefile compiles and runs when 'make' is run in the directory
 - this system assumes that no tables can possibly exist in the working database
-  other than "myRooms" and "myReservations" 
+  other than "myRooms" and "myReservations"  (need to change this!)
 
   exist in the database at any 
 
@@ -31,13 +31,13 @@ Notes:
             Whene there is overlap for a guest checking out and a new guest checking in
             Would the checkout be not considered an occupied day?
             Also need to check for overlaping CheckOut CheckIn for partial/full occupied check
+                (probably need to do a GroupBy of the rooms and do stuff that way)
         OR-2. Revenue
             get clarification for "totals" table
             (do we need one total for all months or a total for each?)
         OR-3. Reservations
         OR-4. Rooms
-        OR-5. Detailed reservation information 
-        (call myReservations w/ WHERE clause)
+        OR-5. Detailed reservation information (call myReservations w/ WHERE clause)
         
     Guest:
 

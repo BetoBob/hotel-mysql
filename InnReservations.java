@@ -404,36 +404,143 @@ public class InnReservations
 
 /* ------------- Owner Functions ------------- */
 
-   // Program loop for owner subsystem
-   private static void ownerLoop() 
+   // OR-1. Occupancy overview
+   private static void occupancyMenu()
    {
-      boolean exit = false;
-      Scanner input = new Scanner(System.in);
+      clearScreen(); // required
+      
+      if(getNumDates() == 1)
+      {
 
-      while (!exit) {
-         displayOwner();
+      }
+      
+   }
 
-         String[] tokens = input.nextLine().toLowerCase().split("\\s");
-         char option = tokens[0].charAt(0);
-         char dataOpt = 0;
+   // OR-2. Revenue
 
-         if (tokens.length == 2)
-            dataOpt = tokens[1].charAt(0);
+   private static void displayRevenue(String opt, String optAs)
+   {
+      String query = "SELECT RoomId, RoomName, Month, " + opt
+                   + " FROM ("
+                     + " SELECT ro.RoomId, ro.RoomName,"
+                     + " MONTH(CheckOut) AS monthId, MONTHNAME(CheckOut) AS Month, "
+                     + optAs
+                     + " FROM myReservations re JOIN myRooms ro ON(re.Room = ro.RoomId)"
+                     + " WHERE YEAR(CheckOut) = 2010"
+                     + " GROUP BY ro.RoomId, ro.RoomName, monthId, Month"
+                     + " UNION" 
+                     + " SELECT ro.RoomId, ro.RoomName,"
+                     + " 13 AS monthId, 'Total' AS Month, "
+                     + optAs
+                     + " FROM myReservations re JOIN myRooms ro ON(re.Room = ro.RoomId)"
+                     + " WHERE YEAR(CheckOut) = 2010"
+                     + " GROUP BY ro.RoomId, ro.RoomName"
+                   + " ) AS rt"
+                   + " ORDER BY RoomId, monthId";
 
-         switch(option) {
-            case 'o':   occupancyMenu();
-                        break;
-            case 'd':   System.out.println("revenueData\n");
-                        break;
-            case 's':   System.out.println("browseRes()\n");
-                        break;
-            case 'r':   System.out.println("viewRooms\n");
-                        break;
-            case 'b':   exit = true;
-                        break;
+      String header;
+
+      /* lengths of VarChar columns (default) */
+      int RN = 8;
+      int O = opt.length();
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN FROM myRooms";
+
+      // get max lengths of variables
+      try 
+      {
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
          }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+
+         header = "\n RoomId | "
+                + String.format("%-" + RN + "s | ", "RoomName")
+                + "Month     | " + opt;         
+
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format(" %-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
+            System.out.print(String.format("%-9s | ", rset.getString("Month")));
+            System.out.println(String.format("%" + opt.length() + "s", rset.getString(opt)));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
       }
    }
+
+   // Revenue and volume data subsystem -- option to continue or quit
+   private static void revenueData() {
+
+      clearScreen();
+
+      Scanner input = new Scanner(System.in);
+      char opt = '_';
+      
+      while(opt != 'q')
+      {
+
+         System.out.print("Type (c)ount, (d)ays, or (r)evenue to view "
+            + "different table data (or (q)uit to exit): ");
+
+         opt = input.next().toLowerCase().charAt(0);
+
+         if(opt == 'c')
+            displayRevenue("Reservations", 
+               "COUNT(*) AS Reservations");
+         
+         if(opt == 'd')
+            displayRevenue("days_occupied", 
+               "SUM(DATEDIFF(CheckOut, CheckIn)) AS days_occupied");
+
+         if(opt == 'r')
+            displayRevenue("Revenue", 
+               "SUM(DATEDIFF(CheckOut, CheckIn) * Rate) AS Revenue");
+
+      }
+
+   }
+
+   // OR-3. Reservations
+
+   // OR-4. Rooms
 
    // during the display of a database table you may offer the option
    // to stop the display (since there are many reservations):
@@ -454,6 +561,37 @@ public class InnReservations
          + "- (S)tays - Browse list of reservations\n"
          + "- (R)ooms - View list of rooms\n"
          + "- (B)ack - Goes back to main menu\n");
+   }
+
+   // Program loop for owner subsystem
+   private static void ownerLoop() 
+   {
+      boolean exit = false;
+      Scanner input = new Scanner(System.in);
+
+      while (!exit) {
+         displayOwner();
+
+         String[] tokens = input.nextLine().toLowerCase().split("\\s");
+         char option = tokens[0].charAt(0);
+         char dataOpt = 0;
+
+         if (tokens.length == 2)
+            dataOpt = tokens[1].charAt(0);
+
+         switch(option) {
+            case 'o':   occupancyMenu();
+                        break;
+            case 'd':   revenueData();
+                        break;
+            case 's':   System.out.println("browseRes()\n");
+                        break;
+            case 'r':   System.out.println("viewRooms\n");
+                        break;
+            case 'b':   exit = true;
+                        break;
+         }
+      }
    }
 
    // Convert month name to month number
@@ -509,24 +647,6 @@ public class InnReservations
       String roomCode = input.next();
       return roomCode;
    }
-
-   // OR-1. Occupancy overview
-   private static void occupancyMenu()
-   {
-      clearScreen(); // required
-      
-      if(getNumDates() == 1)
-      {
-
-      }
-      
-   }
-
-   // OR-2. Revenue
-
-   // OR-3. Reservations
-
-   // OR-4. Rooms
 
 /* ------------- Guest Functions ------------- */
 
@@ -692,17 +812,6 @@ public class InnReservations
 	 + "(or (q)uit to exit): ");
       String rvCode = input.next();
       return rvCode;
-   }
-
-   // Revenue and volume data subsystem -- option to continue or quit
-   private static char revenueData() {
-      Scanner input = new Scanner(System.in);
-      char opt;
-         System.out.print("Type (c)ount, (d)ays, or (r)evenue to view "
-            + "different table data (or (q)uit to exit): ");
-         opt = input.next().toLowerCase().charAt(0);
-
-	 return opt;
    }
 
    // potentially useful for Rooms Viewing Subsystem -- gets option to
