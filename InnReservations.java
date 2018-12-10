@@ -257,9 +257,9 @@ public class InnReservations
       }
    }
 
-   private static void displayMyRooms()
+   private static void displayMyRooms(String whereClause)
    {
-      String query = "SELECT * FROM myRooms";
+      String query = "SELECT * FROM myRooms " + whereClause;
       String header;
 
       /* lengths of VarChar columns (default) */
@@ -270,7 +270,8 @@ public class InnReservations
       String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN, " 
                         + "MAX(CHAR_LENGTH(BedType)) AS maxBT, " 
                         + "MAX(CHAR_LENGTH(Decor)) AS maxD " 
-                        + "FROM myRooms";
+                        + "FROM myRooms "
+                        + whereClause;
 
       PreparedStatement stmt = null;
       ResultSet rset = null;
@@ -348,7 +349,7 @@ public class InnReservations
          return;
       
       if(table.equals("myRooms"))
-         displayMyRooms();
+         displayMyRooms(" ");
 
       if(table.equals("myReservations"))
          displayMyReservations(" ");
@@ -1121,7 +1122,7 @@ public class InnReservations
    {
       String option, roomCode;
 
-      displayMyRooms();
+      displayMyRooms(" ");
 
       Scanner input = new Scanner(System.in);
 
@@ -1302,10 +1303,31 @@ public class InnReservations
 
 /* ------------- Guest Functions ------------- */
 
+   // R-1. Rooms and Rates
+
+   private static void roomsAndRates()
+   {
+      clearScreen();
+      displayMyRooms(" ");
+      String code = getRoomCodeOrQ().toUpperCase();
+      if(!code.equals("Q"))
+         displayMyRooms("WHERE RoomId = '" + code + "'");
+   }
+
+   // R-2. Checking Room Availability
+
+   // R-3 Pricing
+
+   // R-4 Reservations
+
+   // R-5 Completing a reservation
+
+   // R-6 Updating the databse
+
    // Guest UI display
    private static void displayGuest() {
       // Clear the screen
-      // clearScreen();
+      clearScreen();
 
       // Display UI
       System.out.println("Welcome, Guest.\n\n"
@@ -1326,7 +1348,7 @@ public class InnReservations
          char option = input.next().toLowerCase().charAt(0);
 
          switch(option) {
-            case 'r':   System.out.println("roomsAndRates\n");
+            case 'r':   roomsAndRates();
                         break;
             case 's':   System.out.println("viewStays\n");
                         break;
@@ -1335,18 +1357,6 @@ public class InnReservations
          }
       }
    }
-
-   // R-1. Rooms and Rates
-
-   // R-2. Checking Room Availability
-
-   // R-3 Pricing
-
-   // R-4 Reservations
-
-   // R-5 Completing a reservation
-
-   // R-6 Updating the databse
 
 /* ------------- Shared Functions ------------- */
 
