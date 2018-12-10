@@ -293,8 +293,6 @@ public class InnReservationsOrg {
 	 return opt;
    }
 
-
-
    // potentially useful for Rooms Viewing Subsystem -- gets option to
    // view room code or reservations room code or exit
    private static String viewRooms() {

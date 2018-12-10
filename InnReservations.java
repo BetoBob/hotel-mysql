@@ -144,7 +144,7 @@ public class InnReservations
          if(result.getString(1).equals("0") || 
             result.getString(1).equals("1"))
             return "no database";
-            
+
          if(getTableCounts("myRooms").equals("0") ||
             getTableCounts("myReservations").equals("0"))
             return "empty";
@@ -175,22 +175,25 @@ public class InnReservations
 
    private static void displayMyRooms()
    {
+      String query = "SELECT * FROM myRooms";
+      String header;
+
       /* lengths of VarChar columns (default) */
       int RN = 8;
       int BT = 7;
       int D = 7;
-      String header;
+
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN, " 
+                        + "MAX(CHAR_LENGTH(BedType)) AS maxBT, " 
+                        + "MAX(CHAR_LENGTH(Decor)) AS maxD " 
+                        + "FROM myRooms";
+
       PreparedStatement stmt = null;
       ResultSet rset = null;
 
       // get max lengths of variables
       try 
       {
-         String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN, " 
-                        + "MAX(CHAR_LENGTH(BedType)) AS maxBT, " 
-                        + "MAX(CHAR_LENGTH(Decor)) AS maxD " 
-                        + "FROM myRooms";
-
          // max length of RoomName
          stmt = conn.prepareStatement(lengthQ);
          rset = stmt.executeQuery();
@@ -215,7 +218,7 @@ public class InnReservations
       try
       {
 
-         stmt = conn.prepareStatement("SELECT * FROM myRooms");
+         stmt = conn.prepareStatement(query);
          rset = stmt.executeQuery();
          header = "\n RoomId | "
                 + String.format("%-" + RN + "s | ", "RoomName")
@@ -409,14 +412,181 @@ public class InnReservations
 
 /* ------------- Owner Functions ------------- */
 
+   // Convert month name to month number
+   private static int monthNum(String month) {
+      switch (month) {
+         case "1":  case "january":   return 1;
+         case "2":  case "february":  return 2;
+         case "3":  case "march":     return 3;
+         case "4":  case "april":     return 4;
+         case "5":  case "may":       return 5;
+         case "6":  case "june":      return 6;
+         case "7":  case "july":      return 7;
+         case "8":  case "august":    return 8;
+         case "9":  case "september": return 9;
+         case "10": case "october":   return 10;
+         case "11": case "november":  return 11;
+         case "12": case "december":  return 12;
+      }
+
+      return 0; // default
+   }
+
+   // Get a date from input
+   private static String getDate() {
+      Scanner input = new Scanner(System.in);
+
+      String monthName = input.next();
+      int month = monthNum(monthName);
+      int day = input.nextInt();
+      String date = "'2010-" + month + "-" + day + "'";
+      return date;
+   }
+ 
+   // ask how many dates will be entered
+   private static int getNumDates() {
+      Scanner input = new Scanner(System.in);
+
+      System.out.print("Enter number of dates (1 or 2): ");
+
+      int numDates = input.nextInt();
+      while (numDates != 1 && numDates != 2) {
+         System.out.print("Enter number of dates (1 or 2): ");
+         numDates = input.nextInt();
+      }
+      return numDates;
+   }
+
+   // get the room code or a 'q' response to back up the menu
+   private static String getRoomCodeOrQ() {
+      Scanner input = new Scanner(System.in);
+      System.out.print("Enter room code for more details "
+	 + "(or (q)uit to exit): ");
+      String roomCode = input.next();
+      return roomCode;
+   }
+
    // OR-1. Occupancy overview
+   private static void displayOneOcc(String date)
+   {
+      String query = "SELECT DISTINCT RoomId, RoomName, 'occupied' AS Status"
+                   + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                   + " WHERE DATEDIFF(CheckIn,  DATE(" + date + ")) <= 0"
+                   + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) >= 0"
+                   + " UNION" 
+                   + " SELECT DISTINCT RoomId, RoomName, 'empty' AS Status"  
+                   + " FROM myRooms"
+                   + " WHERE RoomId NOT IN ("
+                     + " SELECT DISTINCT RoomId"
+                     + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                     + " WHERE DATEDIFF(CheckIn,  DATE(" + date + ")) <= 0"
+                     + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) >= 0"
+                  + " ) ORDER BY RoomId";
+
+      String header;
+
+      /* lengths of VarChar columns (default) */
+      int RN = 8;
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN FROM myRooms";
+
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+
+         header = "\n RoomId | "
+                + String.format("%-" + RN + "s | ", "RoomName")
+                + "Status    ";         
+
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format(" %-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
+            System.out.println(rset.getString("Status"));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
    private static void occupancyMenu()
    {
       clearScreen(); // required
-      
-      if(getNumDates() == 1)
-      {
 
+      int dates = getNumDates();
+      String date1 = "0000-00-00";
+      String date2 = "0000-00-00";
+      String room = "000";
+      String where = " ";
+      
+      if(dates == 1)
+      {
+         System.out.print("Enter a date [month] [day]: ");
+         date1 = getDate();
+
+         displayOneOcc(date1);
+
+         room = getRoomCodeOrQ();
+
+         while(!(room.toLowerCase().equals("q")))
+         {
+            where = "WHERE Room = '" + room + "'"
+                  + "  AND DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
+                  + "  AND DATEDIFF(CheckOut, DATE(" + date1 + ")) >= 0";
+
+            displayMyReservations(where);
+
+            room = getRoomCodeOrQ();
+         }
+      }
+
+      if(dates == 2)
+      {
+         System.out.print("Enter a date [month] [day]: ");
+         date1 = getDate();
+         System.out.print("Enter a date [month] [day]: ");
+         date2 = getDate();
+         // call displayMultiOcc
       }
       
    }
@@ -548,7 +718,32 @@ public class InnReservations
 
    // OR-3. Reservations
 
+   // get the reservation code or a 'q' response to back up the menu
+   private static String getReservCodeOrQ() {
+      Scanner input = new Scanner(System.in);
+      System.out.print("Enter reservation code for more details "
+	 + "(or (q)uit to exit): ");
+      String rvCode = input.next();
+      return rvCode;
+   }
+
    // OR-4. Rooms
+
+      // potentially useful for Rooms Viewing Subsystem -- gets option to
+      // view room code or reservations room code or exit
+      private static String viewRooms() {
+         Scanner input = new Scanner(System.in);
+         System.out.print("Type (v)iew [room code] or "
+         + "(r)eservations [room code], or (q)uit to exit: ");
+
+         char option = input.next().toLowerCase().charAt(0);
+         String roomCode = String.valueOf(option);
+         if (option != 'q')
+            roomCode = roomCode + " '" + input.next() + "'";
+         return roomCode;
+      }
+
+
 
    // during the display of a database table you may offer the option
    // to stop the display (since there are many reservations):
@@ -558,7 +753,7 @@ public class InnReservations
    // Owner UI display
    private static void displayOwner() {
       // Clear the screen
-      // clearScreen();
+      clearScreen();
 
       // Display UI
       System.out.println("Welcome, Owner.\n\n"
@@ -600,60 +795,6 @@ public class InnReservations
                         break;
          }
       }
-   }
-
-   // Convert month name to month number
-   private static int monthNum(String month) {
-      switch (month) {
-         case "january":   return 1;
-         case "february":  return 2;
-         case "march":     return 3;
-         case "april":     return 4;
-         case "may":       return 5;
-         case "june":      return 6;
-         case "july":      return 7;
-         case "august":    return 8;
-         case "september": return 9;
-         case "october":   return 10;
-         case "november":  return 11;
-         case "december":  return 12;
-      }
-
-      return 0; // default
-   }
-
-   // Get a date from input
-   private static String getDate() {
-      Scanner input = new Scanner(System.in);
-
-      String monthName = input.next();
-      int month = monthNum(monthName);
-      int day = input.nextInt();
-      String date = "'2010-" + month + "-" + day + "'";
-      return date;
-   }
- 
-   // ask how many dates will be entered
-   private static int getNumDates() {
-      Scanner input = new Scanner(System.in);
-
-      System.out.print("Enter number of dates (1 or 2): ");
-
-      int numDates = input.nextInt();
-      while (numDates != 1 && numDates != 2) {
-         System.out.print("Enter number of dates (1 or 2): ");
-         numDates = input.nextInt();
-      }
-      return numDates;
-   }
-
-   // get the room code or a 'q' response to back up the menu
-   private static String getRoomCodeOrQ() {
-      Scanner input = new Scanner(System.in);
-      System.out.print("Enter room code for more details "
-	 + "(or (q)uit to exit): ");
-      String roomCode = input.next();
-      return roomCode;
    }
 
 /* ------------- Guest Functions ------------- */
@@ -744,10 +885,10 @@ public class InnReservations
       int FN = 9;
 
       String lengthQ = "SELECT MAX(CHAR_LENGTH(Code)) AS maxC, "
-                        + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
-                        + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
-                        + "FROM myReservations "
-                        + whereClause;
+                     + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
+                     + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
+                     + "FROM myReservations "
+                     + whereClause;
 
       // get max lengths of variables
       try 
@@ -811,29 +952,6 @@ public class InnReservations
             ex.printStackTrace( );    
          }    	
       }
-   }
-
-   // get the reservation code or a 'q' response to back up the menu
-   private static String getReservCodeOrQ() {
-      Scanner input = new Scanner(System.in);
-      System.out.print("Enter reservation code for more details "
-	 + "(or (q)uit to exit): ");
-      String rvCode = input.next();
-      return rvCode;
-   }
-
-   // potentially useful for Rooms Viewing Subsystem -- gets option to
-   // view room code or reservations room code or exit
-   private static String viewRooms() {
-      Scanner input = new Scanner(System.in);
-	 System.out.print("Type (v)iew [room code] or "
-	    + "(r)eservations [room code], or (q)uit to exit: ");
-
-	 char option = input.next().toLowerCase().charAt(0);
-	 String roomCode = String.valueOf(option);
-	 if (option != 'q')
-	    roomCode = roomCode + " '" + input.next() + "'";
-	 return roomCode;
    }
 
    // ask user if they wish to quit

@@ -6,8 +6,8 @@
     FROM myReservations re
         JOIN myRooms ro
             ON (re.Room = ro.RoomId)
-    WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0 -- Change to specific day
-      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0
+    WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0       -- input "2010-10-30"
+      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0       -- input "2010-10-30"
     UNION 
     SELECT DISTINCT RoomId, RoomName, "empty" AS Status  
     FROM myRooms
@@ -16,8 +16,8 @@
         FROM myReservations re
             JOIN myRooms ro
                 ON (re.Room = ro.RoomId)
-        WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0
-          AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0
+        WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0   -- input "2010-10-30"
+          AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0   -- input "2010-10-30"
     )
     ORDER BY RoomId;
 
@@ -25,9 +25,9 @@
     -- Room selected: "IBS"
     SELECT *
     FROM myReservations
-    WHERE Room = "IBS" -- change to a specific room
-      AND DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0 
-      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0;
+    WHERE Room = "IBS"                                  -- input "IBS"
+      AND DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0   -- input "2010-10-30"
+      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0;  -- input "2010-10-30"
 
     -- Two Dates
     -- FirstDate: "2010-10-30"
