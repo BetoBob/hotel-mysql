@@ -173,6 +173,88 @@ public class InnReservations
 
    // AR-2. Table display
 
+   private static void displayMyReservations()
+   {
+      String query = "SELECT * FROM myReservations";
+      String header;
+
+      /* lengths of columns subject to change in length */
+      int C = 5;
+      int LN = 8;
+      int FN = 9;
+
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(Code)) AS maxC, "
+                     + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
+                     + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
+                     + "FROM myReservations";
+
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         C  = (rset.getInt("maxC")  > C)  ? rset.getInt("maxC")  :  C; 
+         LN = (rset.getInt("maxLN") > LN) ? rset.getInt("maxLN") : LN; 
+         FN = (rset.getInt("maxFN") > FN) ? rset.getInt("maxFN") : FN; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+         header = "\n Code  | Room | CheckIn    | CheckOut   | Rate | "
+                + String.format("%-" + LN + "s | ", "LastName")
+                + String.format("%-" + FN + "s | ", "FirstName")
+                + "Adults | Kids";
+         
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format("%6s | ", rset.getInt("Code")));
+            System.out.print(String.format("%-4s | ", rset.getString("Room")));
+            System.out.print(String.format("%10s | ", rset.getString("CheckIn")));
+            System.out.print(String.format("%10s | ", rset.getString("CheckOut")));
+            System.out.print(String.format("%4s | ", rset.getInt("Rate")));
+            System.out.print(String.format("%-" + LN + "s | ", rset.getString("LastName")));
+            System.out.print(String.format("%-" + FN + "s | ", rset.getString("FirstName")));
+            System.out.print(String.format("%6s | ", rset.getInt("Adults")));
+            System.out.println(String.format("%4s", rset.getInt("Kids")));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
    private static void displayMyRooms()
    {
       String query = "SELECT * FROM myRooms";
@@ -267,7 +349,7 @@ public class InnReservations
          displayMyRooms();
 
       if(table.equals("myReservations"))
-         displayMyReservations("");
+         displayMyReservations();
 
    }
 
@@ -687,7 +769,7 @@ public class InnReservations
                   + "  AND DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
                   + "  AND DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0";
 
-            displayMyReservations(where);
+            displayDetailedReservations(where);
 
             room = getRoomCodeOrQ();
          }
@@ -718,7 +800,7 @@ public class InnReservations
                   + "   OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"      // FirstDate outer right
                   + "  AND  DATEDIFF(CheckOut, DATE(" + date2 + ")) <= 0))";   // LastDate outer right
             
-            displayMyReservations(where);
+            displayDetailedReservations(where);
 
             room = getRoomCodeOrQ();
          }
@@ -862,8 +944,18 @@ public class InnReservations
       return rvCode;
    }
 
+   private static String getRoomId()
+   {
+      return "yeet";
+   }
+
    private static void browseRes()
    {
+      String date1 = "'0000-00-00'";
+      String date2 = "'0000-00-00'";
+      String where = " ";
+      String roomid = " ";
+
       if(getStatus().equals("no database"))
          return;
 
@@ -876,6 +968,8 @@ public class InnReservations
 
       if(checkDates(date1, date2) == false)
          return;
+      
+      
 
    }
 
@@ -894,6 +988,103 @@ public class InnReservations
             roomCode = roomCode + " '" + input.next() + "'";
          return roomCode;
       }
+
+   // OR-5. Detailed reservation information
+   // adds RoomName, MaxOcc and BasePrice
+   private static void displayDetailedReservations(String whereClause)
+   {
+      String query = "SELECT *"
+                   + " FROM myReservations re"
+                   + "     JOIN myRooms ro ON (ro.RoomId = re.Room) "
+                   + whereClause;
+      String header;
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+
+      /* lengths of columns subject to change in length */
+      int C = 5;  // Code
+      int LN = 8; // LastName
+      int FN = 9; // FirstName
+      int RN = 9; // RoomName
+
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(re.Code)) AS maxC, "
+                     + "MAX(CHAR_LENGTH(re.LastName)) AS maxLN, " 
+                     + "MAX(CHAR_LENGTH(re.FirstName)) AS maxFN, " 
+                     + "MAX(CHAR_LENGTH(ro.RoomName)) AS maxRN " 
+                     + "FROM myReservations re "
+                     + "     JOIN myRooms ro ON (ro.RoomId = re.Room) "
+                     + whereClause;
+
+      // get max lengths of variables
+      try 
+      {
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         C  = (rset.getInt("maxC")  > C)  ? rset.getInt("maxC")  :  C; 
+         LN = (rset.getInt("maxLN") > LN) ? rset.getInt("maxLN") : LN; 
+         FN = (rset.getInt("maxFN") > FN) ? rset.getInt("maxFN") : FN; 
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+         header = "\n Code  | Room | "
+                + String.format("%-" + RN + "s | ", "RoomName")
+                + "MaxOcc | BasePrice | CheckIn    | CheckOut   | Rate | "
+                + String.format("%-" + LN + "s | ", "LastName")
+                + String.format("%-" + FN + "s | ", "FirstName")
+                + "Adults | Kids ";
+         
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format("%6s | ", rset.getInt("re.Code")));
+            System.out.print(String.format("%-4s | ", rset.getString("re.Room")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("ro.RoomName")));
+            System.out.print(String.format("%6s | ", rset.getInt("ro.MaxOcc")));
+            System.out.print(String.format("%9s | ", rset.getInt("ro.BasePrice")));
+            System.out.print(String.format("%10s | ", rset.getString("re.CheckIn")));
+            System.out.print(String.format("%10s | ", rset.getString("re.CheckOut")));
+            System.out.print(String.format("%4s | ", rset.getInt("re.Rate")));
+            System.out.print(String.format("%-" + LN + "s | ", rset.getString("re.LastName")));
+            System.out.print(String.format("%-" + FN + "s | ", rset.getString("re.FirstName")));
+            System.out.print(String.format("%6s | ", rset.getInt("re.Adults")));
+            System.out.println(String.format("%4s", rset.getInt("re.Kids")));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
 
 
 
@@ -1016,93 +1207,6 @@ public class InnReservations
          System.out.flush();
          //c.writer().print(ESC + "[1;1H");
          //c.flush();
-      }
-   }
-
-   // AR-2. Table Display
-   // OR-5. Detailed reservation information
-   private static void displayMyReservations(String whereClause)
-   {
-      String query = "SELECT * "
-                   + "FROM myReservations "
-                   + whereClause;
-      String header;
-      PreparedStatement stmt = null;
-      ResultSet rset = null;
-
-
-      /* lengths of columns subject to change in length */
-      int C = 5;
-      int LN = 8;
-      int FN = 9;
-
-      String lengthQ = "SELECT MAX(CHAR_LENGTH(Code)) AS maxC, "
-                     + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
-                     + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
-                     + "FROM myReservations "
-                     + whereClause;
-
-      // get max lengths of variables
-      try 
-      {
-         stmt = conn.prepareStatement(lengthQ);
-         rset = stmt.executeQuery();
-         rset.next();
-         C  = (rset.getInt("maxC")  > C)  ? rset.getInt("maxC")  :  C; 
-         LN = (rset.getInt("maxLN") > LN) ? rset.getInt("maxLN") : LN; 
-         FN = (rset.getInt("maxFN") > FN) ? rset.getInt("maxFN") : FN; 
-      }
-      catch (Exception ex){
-          ex.printStackTrace();
-      }
-      finally {
-         try {
-             stmt.close();
-         }
-         catch (Exception ex) {
-            ex.printStackTrace( );    
-         }    	
-      }
-
-      // print tuples
-      try
-      {
-
-         stmt = conn.prepareStatement(query);
-         rset = stmt.executeQuery();
-         header = "\n Code  | Room | CheckIn    | CheckOut   | Rate | "
-                + String.format("%-" + LN + "s | ", "LastName")
-                + String.format("%-" + FN + "s | ", "FirstName")
-                + "Adults | Kids";
-         
-         System.out.println(header);
-         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
-               
-         while (rset.next())
-         {
-            System.out.print(String.format("%6s | ", rset.getInt("Code")));
-            System.out.print(String.format("%-4s | ", rset.getString("Room")));
-            System.out.print(String.format("%10s | ", rset.getString("CheckIn")));
-            System.out.print(String.format("%10s | ", rset.getString("CheckOut")));
-            System.out.print(String.format("%4s | ", rset.getInt("Rate")));
-            System.out.print(String.format("%-" + LN + "s | ", rset.getString("LastName")));
-            System.out.print(String.format("%-" + FN + "s | ", rset.getString("FirstName")));
-            System.out.print(String.format("%6s | ", rset.getInt("Adults")));
-            System.out.println(String.format("%4s", rset.getInt("Kids")));
-         }
-         System.out.println();
-         rset.close();
-      }
-      catch (Exception ex){
-          ex.printStackTrace();
-      }
-      finally {
-         try {
-             stmt.close();
-         }
-         catch (Exception ex) {
-            ex.printStackTrace( );    
-         }    	
       }
    }
 

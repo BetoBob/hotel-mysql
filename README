@@ -11,6 +11,7 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 Notes: 
 - this system considers CheckOut as unoccupied
 - a room code is assumed to be RoomId (OR-2)
+- OR-5 includes RoomName, MaxOcc and BasePrice
 
     Admin:
         complete
@@ -21,8 +22,9 @@ Notes:
         OR-2. Revenue
             complete
         OR-3. Reservations
-
         OR-4. Rooms
+        OR-5. Detailed reservation information
+            complete
         
     Guest:
 
