@@ -7,24 +7,10 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 Notes: 
 - the Makefile compiles and runs when 'make' is run in the directory
-- this system assumes that no tables can possibly exist in the working database
-  other than "myRooms" and "myReservations"  (need to change this!)
-
-  exist in the database at any 
+    - add feature to make and 'make run' feature
 
     Admin:
-        AR-1. Status
-            complete
-        AR-2. Table Display
-            complete
-        AR-3. Clear database (removes tuples from tables -> empty database)
-            complete
-        AR-4. Populate the database
-            complete
-        AR-5. Database removal (remove tables -> no database)
-            complete
-        AR-6. switch subsystem (just the back button)
-            complete
+        complete
         
     Owner:
         OR-1. Occupancy overview
@@ -33,8 +19,7 @@ Notes:
             Also need to check for overlaping CheckOut CheckIn for partial/full occupied check
                 (probably need to do a GroupBy of the rooms and do stuff that way)
         OR-2. Revenue
-            get clarification for "totals" table
-            (do we need one total for all months or a total for each?)
+            complete
         OR-3. Reservations
         OR-4. Rooms
         OR-5. Detailed reservation information (call myReservations w/ WHERE clause)

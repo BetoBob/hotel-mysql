@@ -126,79 +126,25 @@ public class InnReservations
 
 /* ------------- Admin Functions ------------- */
 
-   // Program loop for admin subsystem
-   private static void adminLoop() 
-   {
-      boolean exit = false;
-      Scanner input = new Scanner(System.in);
-
-      while (!exit) 
-      {
-         displayAdmin();
-         String table = "";
-
-         String[] tokens = input.nextLine().split(" ");
-         char option = tokens[0].toLowerCase().charAt(0);
-
-         if(tokens.length > 1)
-            table = tokens[1];
-
-         switch(option) {
-            case 'v':   displayTable(table);
-                        break;
-            case 'c':   clearDB();
-                        break;
-            case 'l':   loadDB();
-                        break;
-            case 'r':   removeDB();
-                        break;
-            case 'b':   exit = true;
-                        break;
-         }
-      }
-
-   }
-
-   // Admin UI display
-   private static void displayAdmin() 
-   {
-
-      // Clear the screen -- only if it makes sense to do it
-      // clearScreen();
-
-      String status = getStatus();
-      String res = getTableCounts("myReservations");
-      String rooms = getTableCounts("myRooms");
-
-      // Display UI
-      // add your own information for the state of the database
-      System.out.println("Welcome, Admin.\n\n"
-         + "Current Status: " + status + "\n"   // AR-1 Status
-         + "Reservations: " + res + "\n"        // AR-1 Reservations
-         + "Rooms: " + rooms + "\n\n"           // AR-1 Rooms
-         + "Choose an option:\n"
-         + "- (V)iew [table name] - Displays table contents\n"
-         + "- (C)lear - Deletes all table contents\n"                   
-         + "- (L)oad - Loads all table contents\n"
-         + "- (R)emove - Removes tables\n"
-         + "- (B)ack - Goes back to main menu\n");
-
-   }
-
    // AR-1. Current Status Display
 
    private static String getStatus()
    {
+      String query = "SELECT COUNT(*)"
+                   + " FROM information_schema.tables"
+                   + " WHERE table_schema = '"  + userID + "'"
+                   + " AND table_name = 'myRooms'"
+                   + " OR table_name = 'myReservations'";
+
       try {
          Statement s = conn.createStatement();
-         ResultSet result = s.executeQuery(
-            "SELECT COUNT(*) " +
-            "FROM INFORMATION_SCHEMA.TABLES " +
-            "WHERE TABLE_SCHEMA = '" + userID + "'");
+         ResultSet result = s.executeQuery(query);
          result.next();
 
-         if(result.getString(1).equals("0"))
+         if(result.getString(1).equals("0") || 
+            result.getString(1).equals("1"))
             return "no database";
+            
          if(getTableCounts("myRooms").equals("0") ||
             getTableCounts("myReservations").equals("0"))
             return "empty";
@@ -402,6 +348,65 @@ public class InnReservations
       }
    }
 
+   // Admin UI display
+   private static void displayAdmin() 
+   {
+
+      // Clear the screen -- only if it makes sense to do it
+      // clearScreen();
+
+      String status = getStatus();
+      String res = getTableCounts("myReservations");
+      String rooms = getTableCounts("myRooms");
+
+      // Display UI
+      // add your own information for the state of the database
+      System.out.println("Welcome, Admin.\n\n"
+         + "Current Status: " + status + "\n"   // AR-1 Status
+         + "Reservations: " + res + "\n"        // AR-1 Reservations
+         + "Rooms: " + rooms + "\n\n"           // AR-1 Rooms
+         + "Choose an option:\n"
+         + "- (V)iew [table name] - Displays table contents\n"
+         + "- (C)lear - Deletes all table contents\n"                   
+         + "- (L)oad - Loads all table contents\n"
+         + "- (R)emove - Removes tables\n"
+         + "- (B)ack - Goes back to main menu\n");
+
+   }
+
+   // Program loop for admin subsystem
+   private static void adminLoop() 
+   {
+      boolean exit = false;
+      Scanner input = new Scanner(System.in);
+
+      while (!exit) 
+      {
+         displayAdmin();
+         String table = "";
+
+         String[] tokens = input.nextLine().split(" ");
+         char option = tokens[0].toLowerCase().charAt(0);
+
+         if(tokens.length > 1)
+            table = tokens[1];
+
+         switch(option) {
+            case 'v':   displayTable(table);
+                        break;
+            case 'c':   clearDB();
+                        break;
+            case 'l':   loadDB();
+                        break;
+            case 'r':   removeDB();
+                        break;
+            case 'b':   exit = true;
+                        break;
+         }
+      }
+
+   }
+
 /* ------------- Owner Functions ------------- */
 
    // OR-1. Occupancy overview
@@ -508,6 +513,9 @@ public class InnReservations
 
    // Revenue and volume data subsystem -- option to continue or quit
    private static void revenueData() {
+
+      if(getStatus().equals("no database"))
+         return;
 
       clearScreen();
 

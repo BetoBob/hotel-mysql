@@ -2,26 +2,10 @@
 
     -- Status
     SELECT COUNT(*)
-    FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_SCHEMA = 'rehensle';
-
-    -- Reservations
-    SELECT COUNT(*)
-    FROM reservations;
-
-    -- Rooms
-    SELECT COUNT(*)
-    FROM rooms;
-
--- AR-2 Table display
-
-    -- rooms
-    SELECT *
-    FROM rooms;
-
-    -- reservations;
-    SELECT *
-    FROM reservations;
+    FROM information_schema.tables
+    WHERE table_schema = 'rehensle' -- input1
+      AND table_name = 'myRooms'
+       OR table_name = 'myReservations';
 
 SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, COLUMN_KEY, IS_NULLABLE
 FROM information_schema.columns 
