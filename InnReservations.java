@@ -173,9 +173,10 @@ public class InnReservations
 
    // AR-2. Table display
 
-   private static void displayMyReservations()
+   private static void displayMyReservations(String whereClause)
    {
-      String query = "SELECT * FROM myReservations";
+      String query = "SELECT * FROM myReservations "
+                   + whereClause;
       String header;
 
       /* lengths of columns subject to change in length */
@@ -186,7 +187,8 @@ public class InnReservations
       String lengthQ = "SELECT MAX(CHAR_LENGTH(Code)) AS maxC, "
                      + "MAX(CHAR_LENGTH(LastName)) AS maxLN, " 
                      + "MAX(CHAR_LENGTH(FirstName)) AS maxFN " 
-                     + "FROM myReservations";
+                     + "FROM myReservations "
+                     + whereClause;;
 
       PreparedStatement stmt = null;
       ResultSet rset = null;
@@ -349,7 +351,7 @@ public class InnReservations
          displayMyRooms();
 
       if(table.equals("myReservations"))
-         displayMyReservations();
+         displayMyReservations(" ");
 
    }
 
@@ -779,7 +781,7 @@ public class InnReservations
       {
          System.out.print("\nEnter a start date [month] [day]: ");
          date1 = getDate();
-         System.out.print(" Enter an end date [month] [day]: ");
+         System.out.print("Enter an end date  [month] [day]: ");
          date2 = getDate();
 
          if(checkDates(date1, date2) == false)
@@ -946,7 +948,16 @@ public class InnReservations
 
    private static String getRoomId()
    {
-      return "yeet";
+      Scanner input = new Scanner(System.in);
+      System.out.print("\nWould you like to enter a RoomId? (Y/N): ");
+      String confirm = input.next();
+
+      if(!confirm.toUpperCase().equals("Y"))
+         return " ";
+
+      System.out.print("Enter a three character RoomId: ");
+      String roomid = input.next();
+      return roomid;
    }
 
    private static void browseRes()
@@ -954,22 +965,47 @@ public class InnReservations
       String date1 = "'0000-00-00'";
       String date2 = "'0000-00-00'";
       String where = " ";
+      String detailedWhere = " ";
       String roomid = " ";
+      String code = " ";
 
       if(getStatus().equals("no database"))
          return;
 
       clearScreen();
 
-      System.out.print("\nEnter a start date [month] [day]: ");
+      System.out.print("Enter a start date [month] [day]: ");
       date1 = getDate();
-      System.out.print(" Enter an end date [month] [day]: ");
+      System.out.print("Enter an end date  [month] [day]: ");
       date2 = getDate();
 
       if(checkDates(date1, date2) == false)
          return;
+
+      roomid = getRoomId();
       
+      if(roomid.equals(" "))
+      {
+         where = "WHERE DATEDIFF(CheckIn,  DATE(" + date1 + ")) >= 0"
+               + "  AND DATEDIFF(CheckIn, DATE(" + date2 + ")) <= 0";
+      }
+      else
+      {
+         where = "WHERE Room = '" + roomid + "'"
+               + "  AND (DATEDIFF(CheckIn, DATE(" + date1 + ")) >= 0"
+               + "  AND DATEDIFF(CheckIn, DATE(" + date2 + ")) <= 0) ";
+      }
+
+      displayMyReservations(where);
       
+      code = getReservCodeOrQ();
+
+      while(!code.toLowerCase().equals("q"))
+      {
+         detailedWhere = where + "  AND Code = " + code;
+         displayDetailedReservations(detailedWhere);
+         code = getReservCodeOrQ();
+      }
 
    }
 
@@ -1130,7 +1166,7 @@ public class InnReservations
                         break;
             case 'd':   revenueData();
                         break;
-            case 's':   System.out.println("browseRes()\n");
+            case 's':   browseRes();
                         break;
             case 'r':   System.out.println("viewRooms\n");
                         break;
