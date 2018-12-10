@@ -166,12 +166,23 @@
         GROUP BY ro.RoomId, ro.RoomName
     ) AS rt
     ORDER BY RoomId, monthId;    
-    
--- OR-3 Reservations
-SELECT *
-FROM myReservations;
 
 -- OR-4 Rooms
+
+SELECT ro.*, 
+    SUM(DATEDIFF(re.CheckOut, re.CheckIn)) AS total_nights,
+    SUM(DATEDIFF(re.CheckOut, re.CheckIn)) / 365 AS percent_occupied,
+    SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) AS total_revenue,
+    SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) / (
+        SELECT SUM(rev) FROM (
+            SELECT SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) AS rev
+            FROM myRooms ro JOIN myReservations re ON (ro.RoomId = re.Room)
+            WHERE YEAR(CheckOut) = 2010
+        ) AS st
+    ) AS percent_revenue
+FROM myRooms ro JOIN myReservations re ON (ro.RoomId = re.Room)
+WHERE YEAR(CheckOut) = 2010 AND ro.RoomId = 'AOB'                   -- input
+GROUP BY ro.RoomId, ro.RoomName, ro.Beds, ro.BedType, ro.MaxOcc, ro.BasePrice, ro.Decor;
 
 SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, COLUMN_KEY, IS_NULLABLE
 FROM information_schema.columns 

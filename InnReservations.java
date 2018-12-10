@@ -574,7 +574,7 @@ public class InnReservations
       String query = "SELECT DISTINCT RoomId, RoomName, 'occupied' AS Status"
                    + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
                    + " WHERE DATEDIFF(CheckIn,  DATE(" + date + ")) <= 0"
-                   + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) >= 0"
+                   + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) > 0"
                    + " UNION" 
                    + " SELECT DISTINCT RoomId, RoomName, 'empty' AS Status"  
                    + " FROM myRooms"
@@ -582,7 +582,7 @@ public class InnReservations
                      + " SELECT DISTINCT RoomId"
                      + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
                      + " WHERE DATEDIFF(CheckIn,  DATE(" + date + ")) <= 0"
-                     + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) >= 0"
+                     + "   AND DATEDIFF(CheckOut, DATE(" + date + ")) > 0"
                   + " ) ORDER BY RoomId";
 
       String header;
@@ -765,7 +765,7 @@ public class InnReservations
 
          room = getRoomCodeOrQ();
 
-         while(!(room.toLowerCase().equals("q")))
+         while(!(room.toUpperCase().equals("Q")))
          {
             where = "WHERE Room = '" + room + "'"
                   + "  AND DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
@@ -791,9 +791,8 @@ public class InnReservations
 
          room = getRoomCodeOrQ();
 
-         while(!(room.toLowerCase().equals("q")))
+         while(!(room.toUpperCase().equals("Q")))
          {
-            room.toUpperCase();
             where = "WHERE Room = '" + room + "'"
                   + "  AND ((DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"     // FirstDate inner
                   + "  AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) > 0)"     // LastDate inner
@@ -1011,19 +1010,146 @@ public class InnReservations
 
    // OR-4. Rooms
 
-      // potentially useful for Rooms Viewing Subsystem -- gets option to
-      // view room code or reservations room code or exit
-      private static String viewRooms() {
-         Scanner input = new Scanner(System.in);
+   private static void displayDetailedRooms(String roomid)
+   {
+      String query = "SELECT ro.*,"
+                   + "  SUM(DATEDIFF(re.CheckOut, re.CheckIn)) AS total_nights,"
+                   + "  SUM(DATEDIFF(re.CheckOut, re.CheckIn)) / 365 AS percent_occupied,"
+                   + "  SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) AS total_revenue,"
+                   + "  SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) / ("
+                   + "     SELECT SUM(rev) FROM ("
+                   + "        SELECT SUM(DATEDIFF(re.CheckOut, re.CheckIn) * ro.BasePrice) AS rev"
+                   + "        FROM myRooms ro JOIN myReservations re ON (ro.RoomId = re.Room)"
+                   + "        WHERE YEAR(CheckOut) = 2010"
+                   + "     ) AS st"
+                   + "  ) AS percent_revenue"
+                   + " FROM myRooms ro JOIN myReservations re ON (ro.RoomId = re.Room)"
+                   + " WHERE YEAR(CheckOut) = 2010 AND ro.RoomId = " + roomid
+                   + " GROUP BY ro.RoomId, ro.RoomName, ro.Beds, ro.BedType,"
+                   + " ro.MaxOcc, ro.BasePrice, ro.Decor";
+      
+      String header;
+
+      /* lengths of VarChar columns (default) */
+      int RN = 8;
+      int BT = 7;
+      int D = 7;
+
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN, " 
+                     + "MAX(CHAR_LENGTH(BedType)) AS maxBT, " 
+                     + "MAX(CHAR_LENGTH(Decor)) AS maxD " 
+                     + "FROM myRooms";
+
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+         BT = (rset.getInt("maxBT") > BT) ? rset.getInt("maxBT") : BT; 
+         D  = (rset.getInt("maxD")  > D)  ? rset.getInt("maxD")  : D; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+         header = "\n RoomId | "
+                + String.format("%-" + RN + "s | ", "RoomName")
+                + "Beds | "
+                + String.format("%-" + BT + "s | ", "BedType")
+                + "MaxOcc | BasePrice | "
+                + String.format("%-" + D + "s | ", "Decor")
+                + "total_nights | percent_occupied | total_revenue | percent_revenue";
+         
+
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format(" %-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
+            System.out.print(String.format("%-4s | ", rset.getInt("Beds")));
+            System.out.print(String.format("%-" + BT + "s | ", rset.getString("BedType")));
+            System.out.print(String.format("%-6s | ", rset.getInt("MaxOcc")));
+            System.out.print(String.format("%-9s | ", rset.getInt("BasePrice")));
+            System.out.print(String.format("%-" + D + "s | ", rset.getString("Decor")));
+
+            System.out.print(String.format("%12s | ", rset.getString("total_nights")));
+            System.out.print(String.format("%16s | ", rset.getString("percent_occupied")));
+            System.out.print(String.format("%13s | ", rset.getString("total_revenue")));
+            System.out.println(String.format("%15s", rset.getString("percent_revenue")));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
+   // potentially useful for Rooms Viewing Subsystem -- gets option to
+   // view room code or reservations room code or exit
+   private static void viewRooms() 
+   {
+      String option, roomCode;
+
+      displayMyRooms();
+
+      Scanner input = new Scanner(System.in);
+
+      System.out.print("Type (v)iew [room code] or "
+      + "(r)eservations [room code], or (q)uit to exit: ");
+      
+      option = input.next().toLowerCase();
+      
+      while (!option.equals("q"))
+      {
+         if (option.equals("v") || option.equals("r"))
+         {
+            System.out.print("Enter a room code: ");
+            roomCode = " '" + input.next().toUpperCase() + "'";
+
+            if(option.equals("v"))
+               displayDetailedRooms(roomCode);
+            else
+               displayDetailedReservations("WHERE ro.RoomId = " + roomCode);
+         }
+
          System.out.print("Type (v)iew [room code] or "
          + "(r)eservations [room code], or (q)uit to exit: ");
-
-         char option = input.next().toLowerCase().charAt(0);
-         String roomCode = String.valueOf(option);
-         if (option != 'q')
-            roomCode = roomCode + " '" + input.next() + "'";
-         return roomCode;
+         
+         option = input.next().toLowerCase();
       }
+         
+   }
 
    // OR-5. Detailed reservation information
    // adds RoomName, MaxOcc and BasePrice
@@ -1122,8 +1248,6 @@ public class InnReservations
       }
    }
 
-
-
    // during the display of a database table you may offer the option
    // to stop the display (since there are many reservations):
    //    System.out.print("Type (q)uit to exit: ");
@@ -1168,7 +1292,7 @@ public class InnReservations
                         break;
             case 's':   browseRes();
                         break;
-            case 'r':   System.out.println("viewRooms\n");
+            case 'r':   viewRooms();
                         break;
             case 'b':   exit = true;
                         break;
