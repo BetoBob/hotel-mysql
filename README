@@ -8,16 +8,14 @@ java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 Notes: 
 - the Makefile compiles and runs when 'make' is run in the directory
     - add feature to make and 'make run' feature
+- this system considers CheckOut as unoccupied
 
     Admin:
         complete
         
     Owner:
         OR-1. Occupancy overview
-            Whene there is overlap for a guest checking out and a new guest checking in
-            Would the checkout be not considered an occupied day?
-            Also need to check for overlaping CheckOut CheckIn for partial/full occupied check
-                (probably need to do a GroupBy of the rooms and do stuff that way)
+            multi doesn't consider 
         OR-2. Revenue
             complete
         OR-3. Reservations
@@ -25,4 +23,4 @@ Notes:
         OR-5. Detailed reservation information (call myReservations w/ WHERE clause)
         
     Guest:
-        
+

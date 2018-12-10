@@ -7,7 +7,7 @@
         JOIN myRooms ro
             ON (re.Room = ro.RoomId)
     WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0       -- input "2010-10-30"
-      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0       -- input "2010-10-30"
+      AND DATEDIFF(CheckOut, DATE("2010-10-30")) > 0        -- input "2010-10-30"
     UNION 
     SELECT DISTINCT RoomId, RoomName, "empty" AS Status  
     FROM myRooms
@@ -17,7 +17,7 @@
             JOIN myRooms ro
                 ON (re.Room = ro.RoomId)
         WHERE DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0   -- input "2010-10-30"
-          AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0   -- input "2010-10-30"
+          AND DATEDIFF(CheckOut, DATE("2010-10-30")) > 0    -- input "2010-10-30"
     )
     ORDER BY RoomId;
 
@@ -25,14 +25,14 @@
     -- Room selected: "IBS"
     SELECT *
     FROM myReservations
-    WHERE Room = "IBS"                                  -- input "IBS"
-      AND DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0   -- input "2010-10-30"
-      AND DATEDIFF(CheckOut, DATE("2010-10-30")) >= 0;  -- input "2010-10-30"
+    WHERE Room = "IBS"                                 -- input "IBS"
+      AND DATEDIFF(CheckIn,  DATE("2010-10-30")) <= 0  -- input "2010-10-30"
+      AND DATEDIFF(CheckOut, DATE("2010-10-30")) > 0;  -- input "2010-10-30"
 
     -- Two Dates
     -- FirstDate: "2010-10-30"
     -- LastDate: "2010-11-05"
-    -- Note: CheckOut day not considered a full day?
+    -- Note: CheckOut day not considered a full day
 
     SELECT DISTINCT RoomId, RoomName, "fully occupied" AS Status
     FROM myReservations re
@@ -64,6 +64,9 @@
         OR (DATEDIFF(CheckOut, DATE("2010-10-30")) > 0      -- FirstDate
         AND DATEDIFF(CheckOut, DATE("2010-11-05")) <= 0)    -- LastDate
     );
+
+    -- check valid dates:
+    SELECT DATEDIFF("2010-09-3", "2010-09-06") AS diff;
 
     -- showing status
     SELECT *, "fully occupied" AS Status

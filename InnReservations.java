@@ -457,6 +457,25 @@ public class InnReservations
       return numDates;
    }
 
+   private static boolean checkDates(String date1, String date2)
+   {
+      String query = "SELECT DATEDIFF(" + date2 + ", " + date1 + ") AS diff";
+
+      try {
+         Statement s = conn.createStatement();
+         ResultSet result = s.executeQuery(query);
+         result.next();
+         
+         if(result.getInt("diff") >= 0)
+            return true;
+      }
+      catch (Exception ee) {
+         System.out.println("ee170: " + ee);
+      }
+
+      return false;
+   }
+
    // get the room code or a 'q' response to back up the menu
    private static String getRoomCodeOrQ() {
       Scanner input = new Scanner(System.in);
@@ -549,8 +568,103 @@ public class InnReservations
       }
    }
 
+   private static void displayMultiOcc(String date1, String date2)
+   {
+      String query = "SELECT DISTINCT RoomId, RoomName, 'fully occupied' AS Status"
+                   + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                   + " WHERE DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
+                   + "   AND DATEDIFF(CheckOut, DATE(" + date2 + ")) > 0"
+                   + " UNION"
+                   + " SELECT DISTINCT RoomId, RoomName, 'partially occupied' AS Status"
+                   + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                   + " WHERE (DATEDIFF(CheckIn, DATE(" + date1 + ")) > 0"
+                   + "   AND DATEDIFF(CheckIn, DATE(" + date2 + ")) <= 0)"
+                   + "    OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"
+                   + " AND DATEDIFF(CheckOut, DATE(" + date2 + ")) <= 0)"
+                   + " UNION"
+                   + " SELECT DISTINCT RoomId, RoomName, 'empty' AS STATUS"
+                   + " FROM myRooms"
+                   + " WHERE RoomId NOT IN ("
+                     + " SELECT DISTINCT RoomId"
+                     + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                     + " WHERE (DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0" 
+                     + "   AND DATEDIFF(CheckOut, DATE(" + date2 + ")) > 0)"  
+                     + "    OR (DATEDIFF(CheckIn, DATE(" + date1 + ")) > 0"
+                     + "   AND DATEDIFF(CheckIn, DATE(" + date2 + ")) <= 0)"    
+                     + "    OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"
+                     + "   AND DATEDIFF(CheckOut, DATE(" + date2 + ")) <= 0))"; 
+
+      String header;
+
+      /* lengths of VarChar columns (default) */
+      int RN = 8;
+      String lengthQ = "SELECT MAX(CHAR_LENGTH(RoomName)) AS maxRN FROM myRooms";
+
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      // get max lengths of variables
+      try 
+      {
+         // max length of RoomName
+         stmt = conn.prepareStatement(lengthQ);
+         rset = stmt.executeQuery();
+         rset.next();
+         RN = (rset.getInt("maxRN") > RN) ? rset.getInt("maxRN") : RN; 
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+
+      // print tuples
+      try
+      {
+
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+
+         header = "\n RoomId | "
+                + String.format("%-" + RN + "s | ", "RoomName")
+                + "Status          ";         
+
+         System.out.println(header);
+         System.out.println(new String(new char[header.length()]).replace("\0", "-"));
+               
+         while (rset.next())
+         {
+            System.out.print(String.format(" %-6s | ", rset.getString("RoomId")));
+            System.out.print(String.format("%-" + RN + "s | ", rset.getString("RoomName")));
+            System.out.println(rset.getString("Status"));
+         }
+         System.out.println();
+         rset.close();
+      }
+      catch (Exception ex){
+          ex.printStackTrace();
+      }
+      finally {
+         try {
+             stmt.close();
+         }
+         catch (Exception ex) {
+            ex.printStackTrace( );    
+         }    	
+      }
+   }
+
    private static void occupancyMenu()
    {
+      if(getStatus().equals("no databse"))
+         return;
+      
       clearScreen(); // required
 
       int dates = getNumDates();
@@ -572,7 +686,7 @@ public class InnReservations
          {
             where = "WHERE Room = '" + room + "'"
                   + "  AND DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
-                  + "  AND DATEDIFF(CheckOut, DATE(" + date1 + ")) >= 0";
+                  + "  AND DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0";
 
             displayMyReservations(where);
 
@@ -582,11 +696,33 @@ public class InnReservations
 
       if(dates == 2)
       {
-         System.out.print("Enter a date [month] [day]: ");
+         System.out.print("\nEnter a start date [month] [day]: ");
          date1 = getDate();
-         System.out.print("Enter a date [month] [day]: ");
+         System.out.print(" Enter an end date [month] [day]: ");
          date2 = getDate();
-         // call displayMultiOcc
+
+         if(checkDates(date1, date2) == false)
+            return;
+
+         displayMultiOcc(date1, date2);
+
+         room = getRoomCodeOrQ();
+
+         while(!(room.toLowerCase().equals("q")))
+         {
+            room.toUpperCase();
+            where = "WHERE Room = '" + room + "'"
+                  + "  AND ((DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"     // FirstDate inner
+                  + "  AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) > 0)"     // LastDate inner
+                  + "   OR (DATEDIFF(CheckIn,  DATE(" + date1 + ")) > 0"      // FirstDate outer left
+                  + "  AND  DATEDIFF(CheckIn,  DATE(" + date2 + ")) <= 0)"    // LastDate outer left
+                  + "   OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"      // FirstDate outer right
+                  + "  AND  DATEDIFF(CheckOut, DATE(" + date2 + ")) <= 0))";   // LastDate outer right
+            
+            displayMyReservations(where);
+
+            room = getRoomCodeOrQ();
+         }
       }
       
    }
@@ -799,6 +935,19 @@ public class InnReservations
 
 /* ------------- Guest Functions ------------- */
 
+   // Guest UI display
+   private static void displayGuest() {
+      // Clear the screen
+      // clearScreen();
+
+      // Display UI
+      System.out.println("Welcome, Guest.\n\n"
+         + "Choose an option:\n"
+         + "- (R)ooms - View rooms and rates\n"
+         + "- (S)tays - View availability for your stay\n"
+         + "- (B)ack - Goes back to main menu\n");
+   }
+
    // Program loop for guest subsystem
    private static void guestLoop() {
       boolean exit = false;
@@ -818,19 +967,6 @@ public class InnReservations
                         break;
          }
       }
-   }
-
-   // Guest UI display
-   private static void displayGuest() {
-      // Clear the screen
-      // clearScreen();
-
-      // Display UI
-      System.out.println("Welcome, Guest.\n\n"
-         + "Choose an option:\n"
-         + "- (R)ooms - View rooms and rates\n"
-         + "- (S)tays - View availability for your stay\n"
-         + "- (B)ack - Goes back to main menu\n");
    }
 
    // R-1. Rooms and Rates
