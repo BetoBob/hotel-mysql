@@ -5,22 +5,24 @@ Compile/Run Instructions:
 javac *.java
 java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
+    - the Makefile compiles InnReservations when 'make' is run in the directory
+    - the Makefile runs InnReservations when 'make run' is run in the directory
+
 Notes: 
-- the Makefile compiles and runs when 'make' is run in the directory
-    - add feature to make and 'make run' feature
 - this system considers CheckOut as unoccupied
+- a room code is assumed to be RoomId (OR-2)
 
     Admin:
         complete
         
     Owner:
         OR-1. Occupancy overview
-            multi doesn't consider 
+            complete
         OR-2. Revenue
             complete
         OR-3. Reservations
+
         OR-4. Rooms
-        OR-5. Detailed reservation information (call myReservations w/ WHERE clause)
         
     Guest:
 

@@ -4,7 +4,8 @@ InnReservations:
 	javac *.java
 	java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
-handin:
+run :
+	java -cp .:mysql-connector-java-5.1.18-bin.jar InnReservations
 
 clean :
 	rm *.class

@@ -269,7 +269,6 @@ public class InnReservations
       if(table.equals("myReservations"))
          displayMyReservations("");
 
-
    }
 
    // AR-3. Clear database (remove content of tables)
@@ -753,7 +752,6 @@ public class InnReservations
 
       /* lengths of VarChar columns (default) */
       int RN = 8;
-      int O = opt.length();
       PreparedStatement stmt = null;
       ResultSet rset = null;
 
@@ -855,12 +853,30 @@ public class InnReservations
    // OR-3. Reservations
 
    // get the reservation code or a 'q' response to back up the menu
-   private static String getReservCodeOrQ() {
+   private static String getReservCodeOrQ() 
+   {
       Scanner input = new Scanner(System.in);
       System.out.print("Enter reservation code for more details "
-	 + "(or (q)uit to exit): ");
+	      + "(or (q)uit to exit): ");
       String rvCode = input.next();
       return rvCode;
+   }
+
+   private static void browseRes()
+   {
+      if(getStatus().equals("no database"))
+         return;
+
+      clearScreen();
+
+      System.out.print("\nEnter a start date [month] [day]: ");
+      date1 = getDate();
+      System.out.print(" Enter an end date [month] [day]: ");
+      date2 = getDate();
+
+      if(checkDates(date1, date2) == false)
+         return;
+
    }
 
    // OR-4. Rooms

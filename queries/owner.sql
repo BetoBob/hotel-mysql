@@ -168,6 +168,8 @@
     ORDER BY RoomId, monthId;    
     
 -- OR-3 Reservations
+SELECT *
+FROM myReservations;
 
 -- OR-4 Rooms
 
