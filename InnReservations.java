@@ -1305,16 +1305,135 @@ public class InnReservations
 
    // R-1. Rooms and Rates
 
+   private static char availabilityOrGoBack() {
+      Scanner input = new Scanner(System.in);
+
+      System.out.print("Enter (a)vailability, or "
+	 + "(b)ack to go back: ");
+      char option = input.next().toLowerCase().charAt(0);
+
+      return option;
+   }
+
    private static void roomsAndRates()
    {
-      clearScreen();
+      // startup
       displayMyRooms(" ");
+
       String code = getRoomCodeOrQ().toUpperCase();
       if(!code.equals("Q"))
+      {
          displayMyRooms("WHERE RoomId = '" + code + "'");
+         char aChoice = availabilityOrGoBack();
+         if(aChoice == 'a')
+            checkAvailability(code);
+         else
+            roomsAndRates();
+
+      }
+      
    }
 
    // R-2. Checking Room Availability
+
+   private static boolean availabilityQuery(String roomid, String date1, String date2)
+   {
+      String query = "SELECT status"
+                   + " FROM ("
+                     + " SELECT DISTINCT ro.RoomId, 'occupied' AS status"
+                     + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                     + " WHERE (DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
+                     + " AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) > 0)" 
+                     + " OR (DATEDIFF(CheckIn,  DATE(" + date1 + ")) > 0"  
+                     + " AND DATEDIFF(CheckIn,   DATE(" + date2 + ")) <= 0)" 
+                     + " OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"  
+                     + " AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) < 0)"
+                     + " UNION"
+                     + " SELECT DISTINCT RoomId, 'empty' AS status"
+                     + " FROM myRooms"
+                     + " WHERE RoomId NOT IN ("
+                        + " SELECT DISTINCT re.Room"
+                        + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+                        + " WHERE (DATEDIFF(CheckIn,  DATE(" + date1 + ")) <= 0"
+                        + " AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) > 0)"
+                        + " OR (DATEDIFF(CheckIn,  DATE(" + date1 + ")) > 0"
+                        + " AND DATEDIFF(CheckIn,   DATE(" + date2 + ")) <= 0)" 
+                        + " OR (DATEDIFF(CheckOut, DATE(" + date1 + ")) > 0"  
+                        + " AND DATEDIFF(CheckOut,  DATE(" + date2 + ")) < 0)"   
+                   + " )) AS tb"
+                   + " WHERE RoomId = '" + roomid + "'";
+
+      PreparedStatement stmt = null;
+      ResultSet rset = null;
+
+      try
+      {
+         stmt = conn.prepareStatement(query);
+         rset = stmt.executeQuery();
+         rset.next();
+         if(rset.getString("status").equals("empty"))
+            return true;
+      }
+      catch (Exception ex){
+         ex.printStackTrace();
+      }
+      finally {
+         try {
+            stmt.close();
+         }
+         catch (Exception ex) {
+           ex.printStackTrace( );    
+         }    	
+      }
+      
+      return false;
+
+   }
+
+   // Check availability subsystem:
+   // ask if they want to place reservation or renege
+   private static char reserveOrGoBack() {
+      Scanner input = new Scanner(System.in);
+
+      System.out.print("Enter (r)eserve to place a reservation, "
+	 + "or (b)ack to go back: ");
+      char option = input.next().toLowerCase().charAt(0);
+
+      return option;
+   }
+
+   private static void checkAvailability(String code)
+   {
+      String date1, date2;
+      char choice;
+
+      System.out.print("\nEnter a CheckIn date  [month] [day]: ");
+      date1 = getDate();
+      System.out.print("Enter a CheckOut date [month] [day]: ");
+      date2 = getDate();
+
+      if(availabilityQuery(code, date1, date2))
+      {
+         System.out.println("\nStatus: Empty");
+         // print prices R-3 here
+         choice = reserveOrGoBack();
+         if(choice == 'r')
+            System.out.println("reserveDat");
+         else
+            roomsAndRates();
+      }
+      else
+      {
+         System.out.println("\nStatus: Occupied\n");
+         
+         choice = availabilityOrGoBack();
+         if(choice == 'a')
+            checkAvailability(code);
+         else
+            roomsAndRates();
+      }
+      
+   }
 
    // R-3 Pricing
 
@@ -1348,7 +1467,8 @@ public class InnReservations
          char option = input.next().toLowerCase().charAt(0);
 
          switch(option) {
-            case 'r':   roomsAndRates();
+            case 'r':   clearScreen();
+                        roomsAndRates();
                         break;
             case 's':   System.out.println("viewStays\n");
                         break;
@@ -1358,7 +1478,7 @@ public class InnReservations
       }
    }
 
-/* ------------- Shared Functions ------------- */
+/* ------------- Shared Methods ------------- */
 
    // Clears the console screen when running interactive
    private static void clearScreen() 
@@ -1400,30 +1520,6 @@ public class InnReservations
 	   char go = input.next().toLowerCase().charAt(0);
 
 	   return go;
-   }
-
-
-   // potentially useful for check availability subsystem
-   private static char availabilityOrGoBack() {
-      Scanner input = new Scanner(System.in);
-
-      System.out.print("Enter (a)vailability, or "
-	 + "(b)ack to go back: ");
-      char option = input.next().toLowerCase().charAt(0);
-
-      return option;
-   }
-
-   // Check availability subsystem:
-   // ask if they want to place reservation or renege
-   private static char reserveOrGoBack() {
-      Scanner input = new Scanner(System.in);
-
-      System.out.print("Enter (r)eserve to place a reservation, "
-	 + "or (b)ack to go back: ");
-      char option = input.next().toLowerCase().charAt(0);
-
-      return option;
    }
 
    // Get the user's first name (for making a reservation)

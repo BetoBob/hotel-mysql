@@ -17,15 +17,21 @@ Notes:
         complete
         
     Owner:
-        OR-1. Occupancy overview
-            complete
-        OR-2. Revenue
-            complete
-        OR-3. Reservations
-            complete
-        OR-4. Rooms
-        OR-5. Detailed reservation information
-            complete
+        complete
         
     Guest:
 
+| 30479 | MWC  | 2010-05-01 | 2010-05-10 | x
+| 80964 | FNA  | 2010-05-03 | 2010-05-10 | x
+| 17955 | AOB  | 2010-05-05 | 2010-05-09 | x
+
+ - 05-05 to 05-12
+
+| 62147 | RND  | 2010-05-06 | 2010-05-13 | x
+| 29496 | TAA  | 2010-05-07 | 2010-05-14 | x
+| 55870 | IBD  | 2010-05-08 | 2010-05-13 | x
+| 13192 | CAS  | 2010-05-08 | 2010-05-15 | x
+| 75853 | AOB  | 2010-05-10 | 2010-05-12 | x
+| 60169 | MWC  | 2010-05-10 | 2010-05-16 | x
+| 14001 | IBS  | 2010-05-11 | 2010-05-12 | x
+| 45157 | HBB  | 2010-05-11 | 2010-05-18 | x
