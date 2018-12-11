@@ -1414,11 +1414,11 @@ public class InnReservations
 
       if(availabilityQuery(code, date1, date2))
       {
-         System.out.println("\nStatus: Empty");
-         // print prices R-3 here
+         System.out.println("\nStatus: Empty\n\n (call R-3 function here)\n");
+
          choice = reserveOrGoBack();
          if(choice == 'r')
-            System.out.println("reserveDat");
+            System.out.println("resrveRoom");
          else
             roomsAndRates();
       }
@@ -1437,7 +1437,50 @@ public class InnReservations
 
    // R-3 Pricing
 
+   // ask user if they wish to quit
+   private static char askIfQuit() 
+   {
+      Scanner input = new Scanner(System.in);
+
+	   System.out.print("Enter (q)uit to quit: ");
+	   char go = input.next().toLowerCase().charAt(0);
+
+	   return go;
+   }
+
    // R-4 Reservations
+
+   private static void viewStays()
+   {
+      String date1, date2, roomid;
+      char choice;
+
+      System.out.print("Enter a CheckIn date  [month] [day]: ");
+      date1 = getDate();
+      System.out.print("Enter a CheckOut date [month] [day]: ");
+      date2 = getDate();
+
+      displayMyRooms("WHERE RoomId NOT IN ("
+      + " SELECT DISTINCT re.Room" 
+      + " FROM myReservations re JOIN myRooms ro ON (re.Room = ro.RoomId)"
+      + " WHERE (DATEDIFF(re.CheckIn,  DATE(" + date1 + ")) <= 0"
+      + " AND DATEDIFF(re.CheckOut,  DATE(" + date2 + ")) > 0)" 
+      + "   OR (DATEDIFF(re.CheckIn,  DATE(" + date1 + ")) > 0"  
+      + " AND DATEDIFF(re.CheckIn,   DATE(" + date2 + ")) <= 0)"
+      + "   OR (DATEDIFF(re.CheckOut, DATE(" + date1 + ")) > 0"  
+      + " AND DATEDIFF(re.CheckOut,  DATE(" + date2 + ")) < 0))");
+
+      roomid = getRoomCodeOrQ();
+
+      if(!roomid.toLowerCase().equals("q"))
+      {
+         displayMyRooms("WHERE RoomId = '" + roomid + "'");
+         choice = askIfQuit();
+         if((choice != 'q') && (choice != 'Q'))
+            viewStays();
+      }
+      
+   }
 
    // R-5 Completing a reservation
 
@@ -1470,7 +1513,8 @@ public class InnReservations
             case 'r':   clearScreen();
                         roomsAndRates();
                         break;
-            case 's':   System.out.println("viewStays\n");
+            case 's':   clearScreen();
+                        viewStays();
                         break;
             case 'b':   exit = true;
                         break;
@@ -1499,18 +1543,6 @@ public class InnReservations
          //c.flush();
       }
    }
-
-   // ask user if they wish to quit
-   private static char askIfQuit() 
-   {
-      Scanner input = new Scanner(System.in);
-
-	   System.out.print("Enter (q)uit to quit: ");
-	   char go = input.next().toLowerCase().charAt(0);
-
-	   return go;
-   }
-
 
    // ask user if they wish to go back
    private static char askIfGoBack() {
